@@ -57,6 +57,14 @@ var lexTests = []lexTest{
 		itm(itemNumber, "1"),
 		fEof()},
 	},
+	{"1+1-2", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemSub, "-"),
+		itm(itemNumber, "2"),
+		fEof()},
+	},
 
 	//incorrect
 	{"1++2", []item{
@@ -73,14 +81,58 @@ var lexTests = []lexTest{
 	}},
 
 	//complex operations
-	{"1+1-2", []item{
+	{"(1+1)/2", []item{
+		itm(itemLParen, "("),
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "1"),
-		itm(itemSub, "-"),
+		itm(itemRParen, ")"),
+		itm(itemDiv, "/"),
 		itm(itemNumber, "2"),
 		fEof()},
 	},
+	{"1+((1+1)/(2-100))", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemLParen, "("),
+		itm(itemLParen, "("),
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemRParen, ")"),
+		itm(itemDiv, "/"),
+		itm(itemLParen, "("),
+		itm(itemNumber, "2"),
+		itm(itemSub, "-"),
+		itm(itemNumber, "100"),
+		itm(itemRParen, ")"),
+		itm(itemRParen, ")"),
+		fEof()},
+	},
+
+	//incorrect
+	{"1+1)/2", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemError, "No matching opening parenteses for closing one at col 3"),
+	}},
+	{"(1+1))/2", []item{
+		itm(itemLParen, "("),
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemRParen, ")"),
+		itm(itemError, "No matching opening parenteses for closing one at col 5"),
+	}},
+	{"(1+1)(1/2)", []item{
+		itm(itemLParen, "("),
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemRParen, ")"),
+		itm(itemError, "Unexpected char - at col 5"),
+	}},
 	// {"(1 + 2)", []item{
 	// 	item{itemLParen, "(", nilType},
 	// 	item{itemDoubleLiteral, "1", nilType},
