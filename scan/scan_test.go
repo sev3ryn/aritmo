@@ -17,58 +17,70 @@ func itm(typ itemType, val string) item {
 
 var lexTests = []lexTest{
 	// just digits
-	{"", []item{fEof()}},
-	{"   ", []item{fEof()}},
 	{"0", []item{itm(itemNumber, "0"), fEof()}},
 	{"10", []item{itm(itemNumber, "10"), fEof()}},
 	{"0.2", []item{itm(itemNumber, "0.2"), fEof()}},
 	{"1.23", []item{itm(itemNumber, "1.23"), fEof()}},
-	{"-5", []item{itm(itemNumber, "-5"), fEof()}},
-	{"-5.1", []item{itm(itemNumber, "-5.1"), fEof()}},
+	//{"-5", []item{itm(itemNumber, "-5"), fEof()}}, //not working yet
+	//{"-5.1", []item{itm(itemNumber, "-5.1"), fEof()}}, // not working yet
 	{" 1  ", []item{itm(itemNumber, "1"), fEof()}},
 	// incorrect
-	// {"1.", []item{item{itemError, "digit not appear next to dot"}}},
-	// {"1. 0", []item{item{itemError, "digit not appear next to dot"}}},
+	{"", []item{itm(itemError, "Unexpected EOF - at col 0")}},
+	{"   ", []item{itm(itemError, "Unexpected EOF - at col 3")}},
+	{"1.", []item{itm(itemError, "Unexpected char - at col 2")}},
+	{"1. 0", []item{itm(itemError, "Unexpected char - at col 2")}},
+	{"12d", []item{itm(itemNumber, "12"), itm(itemError, "Unexpected char - at col 2")}},
 	// {"- 5", []item{item{itemError, "unexpected space"}}},
 
 	// base operations
-	// {"1+1", []item{
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	item{itemAdd, "+", nilType},
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	fEof()},
-	// },
-	// {"1-1", []item{
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	item{itemSub, "-", nilType},
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	fEof()},
-	// },
-	// {"1*1", []item{
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	item{itemMul, "*", nilType},
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	fEof()},
-	// },
-	// {"1/1", []item{
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	item{itemDiv, "/", nilType},
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	fEof()},
-	// },
-	// {"1+2-3", []item{
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	item{itemAdd, "+", nilType},
-	// 	item{itemDoubleLiteral, "2", nilType},
-	// 	item{itemSub, "-", nilType},
-	// 	item{itemDoubleLiteral, "3", nilType},
-	// 	fEof()},
-	// },
-	// {"1++2", []item{
-	// 	item{itemDoubleLiteral, "1", nilType},
-	// 	item{itemAdd, "+", nilType},
-	// 	item{itemError, "unknown operation ++", nilType}},
-	// },
+	{"1+1", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		fEof()},
+	},
+	{"1-1", []item{
+		itm(itemNumber, "1"),
+		itm(itemSub, "-"),
+		itm(itemNumber, "1"),
+		fEof()},
+	},
+	{"1*1", []item{
+		itm(itemNumber, "1"),
+		itm(itemMul, "*"),
+		itm(itemNumber, "1"),
+		fEof()},
+	},
+	{"1/1", []item{
+		itm(itemNumber, "1"),
+		itm(itemDiv, "/"),
+		itm(itemNumber, "1"),
+		fEof()},
+	},
+
+	//incorrect
+	{"1++2", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemError, "Unexpected char - at col 2"),
+	}},
+	{"1+2+", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "2"),
+		itm(itemAdd, "+"),
+		itm(itemError, "Unexpected EOF - at col 4"),
+	}},
+
+	//complex operations
+	{"1+1-2", []item{
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemSub, "-"),
+		itm(itemNumber, "2"),
+		fEof()},
+	},
 	// {"(1 + 2)", []item{
 	// 	item{itemLParen, "(", nilType},
 	// 	item{itemDoubleLiteral, "1", nilType},

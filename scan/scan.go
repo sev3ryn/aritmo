@@ -49,11 +49,12 @@ const eof = -1
 type stateFn func(*lexer) stateFn
 
 type lexer struct {
-	input []rune    // input
-	start int       // item start
-	col   int       // current end
-	items chan item // output channel
-	state stateFn
+	input        []rune    // input
+	start        int       // item start
+	col          int       // current end
+	items        chan item // output channel
+	state        stateFn
+	openParenCnt int // number of opened parenteses
 }
 
 func (l *lexer) nextItem() item {
@@ -98,8 +99,13 @@ func (l *lexer) emit(t itemType) {
 	l.start = l.col
 }
 
-func (l *lexer) emitEOF() {
-	l.items <- item{itemEOF, "", l.start}
+func (l *lexer) emitEOF(unexpected bool) stateFn {
+	if l.openParenCnt != 0 || unexpected {
+		return l.errorf("Unexpected EOF - at col %d", l.col)
+	}
+
+	l.items <- item{itemEOF, "", l.col}
+	return nil
 }
 
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
@@ -126,75 +132,118 @@ func lexStart(l *lexer) stateFn {
 		l.skipSpaces()
 		return l.state
 	} else if !unicode.IsLetter(r) {
-		return lexAny
+		return lexOperand
 	} else {
 		// catch identifier declaration. First symbol is letter - else alphanumeric
-		l.next()
-		l.iterate(func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' })
-		l.emit(itemIdentifier)
+		lexVariable(l)
 
 		l.skipSpaces()
 
 		if l.peek() == '=' {
 			l.next()
 			l.emit(itemEqual)
+			return lexOperand
 		}
+		return lexOperator
 	}
-	return lexAny
 
 }
 
-func lexAny(l *lexer) stateFn {
-	// LOOP:
-	for {
-		r := l.peek()
-		switch {
-		case r == '+':
-			l.next()
-			l.emit(itemAdd)
-		case r == '-':
-			l.next()
-			l.emit(itemSub)
-		case r == '*':
-			l.next()
-			l.emit(itemMul)
-		case r == '/':
-			l.next()
-			l.emit(itemDiv)
-		case r == '(':
-			l.next()
-			l.emit(itemLParen)
-		case r == ')':
-			l.next()
-			l.emit(itemRParen)
-		case isSpace(r):
-			l.skipSpaces()
-		case r == '\n' || r == eof:
-			l.next()
-			l.emitEOF()
-			return nil
-		case unicode.IsDigit(r):
-			return lexNumber
-		default:
-			l.errorf("Unexpected char - %q at col %d", r, l.start)
-		}
+func isEOF(r rune) bool {
+	return r == '\n' || r == eof
+}
+
+func lexOperand(l *lexer) stateFn {
+
+	if isSpace(l.peek()) {
+		l.skipSpaces()
 	}
 
+	r := l.peek()
+	if isEOF(r) {
+		return l.emitEOF(true)
+	}
+
+	switch {
+	case unicode.IsDigit(r):
+		return lexNumber
+	case unicode.IsLetter(r):
+		return lexVariable
+	case r == '(':
+		l.openParenCnt++
+		l.next()
+		l.emit(itemLParen)
+		return lexOperand
+	default:
+		return l.errorf("Unexpected char - at col %d", l.col)
+	}
+
+}
+
+func lexOperator(l *lexer) stateFn {
+
+	if isSpace(l.peek()) {
+		l.skipSpaces()
+	}
+
+	r := l.peek()
+	if isEOF(r) {
+		return l.emitEOF(false)
+	}
+
+	switch {
+	case r == '+':
+		l.next()
+		l.emit(itemAdd)
+	case r == '-':
+		l.next()
+		l.emit(itemSub)
+	case r == '*':
+		l.next()
+		l.emit(itemMul)
+	case r == '/':
+		l.next()
+		l.emit(itemDiv)
+	// case r == '(':
+	// 	l.openParenCnt++
+	// 	l.next()
+	// 	l.emit(itemLParen)
+	case r == ')':
+		if l.openParenCnt == 0 {
+			return l.errorf("No matching opening parenteses for closing one at col %d", l.col)
+		}
+		l.openParenCnt--
+		l.next()
+		l.emit(itemRParen)
+		return lexOperator
+	default:
+		return l.errorf("Unexpected char - at col %d", l.col)
+	}
+
+	return lexOperand
 }
 
 func lexNumber(l *lexer) stateFn {
-
+	l.next()
 	l.iterate(unicode.IsDigit)
 
 	if l.peek() == '.' {
 		l.next()
 
 		if r := l.peek(); !unicode.IsDigit(r) {
-			l.errorf("Unexpected char after dot %q at col %d", r, l.col)
+			return l.errorf("Unexpected char - at col %d", l.col)
 		}
 		l.iterate(unicode.IsDigit)
 	}
 
 	l.emit(itemNumber)
-	return lexAny
+	return lexOperator
+}
+
+func lexVariable(l *lexer) stateFn {
+	// catch identifier declaration. First symbol is letter - else alphanumeric
+	l.next()
+	l.iterate(func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' })
+	l.emit(itemIdentifier)
+	return lexOperator
 }
