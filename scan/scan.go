@@ -21,7 +21,7 @@ type itemType int
 const (
 	itemEOF itemType = iota
 	itemNumber
-	itemIdentifier
+	itemVariable
 	itemEqual
 	itemAdd
 	itemSub
@@ -244,6 +244,6 @@ func lexVariable(l *lexer) stateFn {
 	// catch identifier declaration. First symbol is letter - else alphanumeric
 	l.next()
 	l.iterate(func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' })
-	l.emit(itemIdentifier)
+	l.emit(itemVariable)
 	return lexOperator
 }

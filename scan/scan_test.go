@@ -133,6 +133,57 @@ var lexTests = []lexTest{
 		itm(itemRParen, ")"),
 		itm(itemError, "Unexpected char - at col 5"),
 	}},
+	{"(1+1", []item{
+		itm(itemLParen, "("),
+		itm(itemNumber, "1"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemError, "Unexpected EOF - at col 4"),
+	}},
+
+	// identifiers
+	{"t= 2", []item{
+		itm(itemVariable, "t"),
+		itm(itemEqual, "="),
+		itm(itemNumber, "2"),
+		fEof(),
+	}},
+	{"t+1", []item{
+		itm(itemVariable, "t"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		fEof(),
+	}},
+	{"2*t+mtp", []item{
+		itm(itemNumber, "2"),
+		itm(itemMul, "*"),
+		itm(itemVariable, "t"),
+		itm(itemAdd, "+"),
+		itm(itemVariable, "mtp"),
+		fEof(),
+	}},
+	{"t==", []item{
+		itm(itemVariable, "t"),
+		itm(itemEqual, "="),
+		itm(itemError, "Unexpected char - at col 2"),
+	}},
+	{"t=1=1", []item{
+		itm(itemVariable, "t"),
+		itm(itemEqual, "="),
+		itm(itemNumber, "1"),
+		itm(itemError, "Unexpected char - at col 3"),
+	}},
+	{"t+1=1", []item{
+		itm(itemVariable, "t"),
+		itm(itemAdd, "+"),
+		itm(itemNumber, "1"),
+		itm(itemError, "Unexpected char - at col 3"),
+	}},
+	{"t$s=1", []item{
+		itm(itemVariable, "t"),
+		itm(itemError, "Unexpected char - at col 1"),
+	}},
+
 	// {"(1 + 2)", []item{
 	// 	item{itemLParen, "(", nilType},
 	// 	item{itemDoubleLiteral, "1", nilType},
