@@ -167,6 +167,17 @@ func lexOperand(l *lexer) stateFn {
 	switch {
 	case unicode.IsDigit(r):
 		return lexNumber
+	// handling negative numbers
+	case r == '-':
+
+		if r = l.next(); isEOF(r) {
+			return l.emitEOF(true)
+		} else if unicode.IsDigit(r) {
+			return lexNumber
+		}
+
+		return l.errorf("Unexpected char - at col %d", l.col)
+
 	case unicode.IsLetter(r):
 		return lexVariable
 	case r == '(':

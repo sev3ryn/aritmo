@@ -21,8 +21,8 @@ var lexTests = []lexTest{
 	{"10", []item{itm(itemNumber, "10"), fEof()}},
 	{"0.2", []item{itm(itemNumber, "0.2"), fEof()}},
 	{"1.23", []item{itm(itemNumber, "1.23"), fEof()}},
-	//{"-5", []item{itm(itemNumber, "-5"), fEof()}}, //not working yet
-	//{"-5.1", []item{itm(itemNumber, "-5.1"), fEof()}}, // not working yet
+	{"-5", []item{itm(itemNumber, "-5"), fEof()}},
+	{"-5.1", []item{itm(itemNumber, "-5.1"), fEof()}},
 	{" 1  ", []item{itm(itemNumber, "1"), fEof()}},
 	// incorrect
 	{"", []item{itm(itemError, "Unexpected EOF - at col 0")}},
@@ -30,7 +30,7 @@ var lexTests = []lexTest{
 	{"1.", []item{itm(itemError, "Unexpected char - at col 2")}},
 	{"1. 0", []item{itm(itemError, "Unexpected char - at col 2")}},
 	{"12d", []item{itm(itemNumber, "12"), itm(itemError, "Unexpected char - at col 2")}},
-	// {"- 5", []item{item{itemError, "unexpected space"}}},
+	{"- 5", []item{itm(itemError, "Unexpected char - at col 1")}},
 
 	// base operations
 	{"1+1", []item{
@@ -91,7 +91,7 @@ var lexTests = []lexTest{
 		itm(itemNumber, "2"),
 		fEof()},
 	},
-	{"1+((1+1)/(2-100))", []item{
+	{"1+((1+1)/(-2-100))", []item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemLParen, "("),
@@ -102,7 +102,7 @@ var lexTests = []lexTest{
 		itm(itemRParen, ")"),
 		itm(itemDiv, "/"),
 		itm(itemLParen, "("),
-		itm(itemNumber, "2"),
+		itm(itemNumber, "-2"),
 		itm(itemSub, "-"),
 		itm(itemNumber, "100"),
 		itm(itemRParen, ")"),
