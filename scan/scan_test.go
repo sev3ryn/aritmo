@@ -4,75 +4,75 @@ import "testing"
 
 type lexTest struct {
 	input string
-	items []item
+	items []Item
 }
 
-func fEof() item {
-	return item{itemEOF, "", 0}
+func fEOF() Item {
+	return Item{itemEOF, "", 0}
 }
 
-func itm(typ itemType, val string) item {
-	return item{typ, val, 0}
+func itm(typ itemType, val string) Item {
+	return Item{typ, val, 0}
 }
 
 var lexTests = []lexTest{
 	// just digits
-	{"0", []item{itm(itemNumber, "0"), fEof()}},
-	{"10", []item{itm(itemNumber, "10"), fEof()}},
-	{"0.2", []item{itm(itemNumber, "0.2"), fEof()}},
-	{"1.23", []item{itm(itemNumber, "1.23"), fEof()}},
-	{"-5", []item{itm(itemNumber, "-5"), fEof()}},
-	{"-5.1", []item{itm(itemNumber, "-5.1"), fEof()}},
-	{" 1  ", []item{itm(itemNumber, "1"), fEof()}},
+	{"0", []Item{itm(itemNumber, "0"), fEOF()}},
+	{"10", []Item{itm(itemNumber, "10"), fEOF()}},
+	{"0.2", []Item{itm(itemNumber, "0.2"), fEOF()}},
+	{"1.23", []Item{itm(itemNumber, "1.23"), fEOF()}},
+	{"-5", []Item{itm(itemNumber, "-5"), fEOF()}},
+	{"-5.1", []Item{itm(itemNumber, "-5.1"), fEOF()}},
+	{" 1  ", []Item{itm(itemNumber, "1"), fEOF()}},
 	// incorrect
-	{"", []item{itm(itemError, "Unexpected EOF - at col 0")}},
-	{"   ", []item{itm(itemError, "Unexpected EOF - at col 3")}},
-	{"1.", []item{itm(itemError, "Unexpected char - at col 2")}},
-	{"1. 0", []item{itm(itemError, "Unexpected char - at col 2")}},
-	{"12d", []item{itm(itemNumber, "12"), itm(itemError, "Unexpected char - at col 2")}},
-	{"- 5", []item{itm(itemError, "Unexpected char - at col 1")}},
+	{"", []Item{itm(itemError, "Unexpected EOF - at col 0")}},
+	{"   ", []Item{itm(itemError, "Unexpected EOF - at col 3")}},
+	{"1.", []Item{itm(itemError, "Unexpected char - at col 2")}},
+	{"1. 0", []Item{itm(itemError, "Unexpected char - at col 2")}},
+	{"12d", []Item{itm(itemNumber, "12"), itm(itemError, "Unexpected char - at col 2")}},
+	{"- 5", []Item{itm(itemError, "Unexpected char - at col 1")}},
 
 	// base operations
-	{"1+1", []item{
+	{"1+1", []Item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "1"),
-		fEof()},
+		fEOF()},
 	},
-	{"1-1", []item{
+	{"1-1", []Item{
 		itm(itemNumber, "1"),
 		itm(itemSub, "-"),
 		itm(itemNumber, "1"),
-		fEof()},
+		fEOF()},
 	},
-	{"1*1", []item{
+	{"1*1", []Item{
 		itm(itemNumber, "1"),
 		itm(itemMul, "*"),
 		itm(itemNumber, "1"),
-		fEof()},
+		fEOF()},
 	},
-	{"1/1", []item{
+	{"1/1", []Item{
 		itm(itemNumber, "1"),
 		itm(itemDiv, "/"),
 		itm(itemNumber, "1"),
-		fEof()},
+		fEOF()},
 	},
-	{"1+1-2", []item{
+	{"1+1-2", []Item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "1"),
 		itm(itemSub, "-"),
 		itm(itemNumber, "2"),
-		fEof()},
+		fEOF()},
 	},
 
 	//incorrect
-	{"1++2", []item{
+	{"1++2", []Item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemError, "Unexpected char - at col 2"),
 	}},
-	{"1+2+", []item{
+	{"1+2+", []Item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "2"),
@@ -81,7 +81,7 @@ var lexTests = []lexTest{
 	}},
 
 	//complex operations
-	{"(1+1)/2", []item{
+	{"(1+1)/2", []Item{
 		itm(itemLParen, "("),
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
@@ -89,9 +89,9 @@ var lexTests = []lexTest{
 		itm(itemRParen, ")"),
 		itm(itemDiv, "/"),
 		itm(itemNumber, "2"),
-		fEof()},
+		fEOF()},
 	},
-	{"1+((1+1)/(-2-100))", []item{
+	{"1+((1+1)/(-2-100))", []Item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemLParen, "("),
@@ -107,17 +107,17 @@ var lexTests = []lexTest{
 		itm(itemNumber, "100"),
 		itm(itemRParen, ")"),
 		itm(itemRParen, ")"),
-		fEof()},
+		fEOF()},
 	},
 
 	//incorrect
-	{"1+1)/2", []item{
+	{"1+1)/2", []Item{
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "1"),
 		itm(itemError, "No matching opening parenteses for closing one at col 3"),
 	}},
-	{"(1+1))/2", []item{
+	{"(1+1))/2", []Item{
 		itm(itemLParen, "("),
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
@@ -125,7 +125,7 @@ var lexTests = []lexTest{
 		itm(itemRParen, ")"),
 		itm(itemError, "No matching opening parenteses for closing one at col 5"),
 	}},
-	{"(1+1)(1/2)", []item{
+	{"(1+1)(1/2)", []Item{
 		itm(itemLParen, "("),
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
@@ -133,7 +133,7 @@ var lexTests = []lexTest{
 		itm(itemRParen, ")"),
 		itm(itemError, "Unexpected char - at col 5"),
 	}},
-	{"(1+1", []item{
+	{"(1+1", []Item{
 		itm(itemLParen, "("),
 		itm(itemNumber, "1"),
 		itm(itemAdd, "+"),
@@ -142,44 +142,44 @@ var lexTests = []lexTest{
 	}},
 
 	// identifiers
-	{"t= 2", []item{
+	{"t= 2", []Item{
 		itm(itemVariable, "t"),
 		itm(itemEqual, "="),
 		itm(itemNumber, "2"),
-		fEof(),
+		fEOF(),
 	}},
-	{"t+1", []item{
+	{"t+1", []Item{
 		itm(itemVariable, "t"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "1"),
-		fEof(),
+		fEOF(),
 	}},
-	{"2*t+mtp", []item{
+	{"2*t+mtp", []Item{
 		itm(itemNumber, "2"),
 		itm(itemMul, "*"),
 		itm(itemVariable, "t"),
 		itm(itemAdd, "+"),
 		itm(itemVariable, "mtp"),
-		fEof(),
+		fEOF(),
 	}},
-	{"t==", []item{
+	{"t==", []Item{
 		itm(itemVariable, "t"),
 		itm(itemEqual, "="),
 		itm(itemError, "Unexpected char - at col 2"),
 	}},
-	{"t=1=1", []item{
+	{"t=1=1", []Item{
 		itm(itemVariable, "t"),
 		itm(itemEqual, "="),
 		itm(itemNumber, "1"),
 		itm(itemError, "Unexpected char - at col 3"),
 	}},
-	{"t+1=1", []item{
+	{"t+1=1", []Item{
 		itm(itemVariable, "t"),
 		itm(itemAdd, "+"),
 		itm(itemNumber, "1"),
 		itm(itemError, "Unexpected char - at col 3"),
 	}},
-	{"t$s=1", []item{
+	{"t$s=1", []Item{
 		itm(itemVariable, "t"),
 		itm(itemError, "Unexpected char - at col 1"),
 	}},
@@ -198,9 +198,9 @@ var lexTests = []lexTest{
 	// },
 }
 
-func collect(t *lexTest) (items []item) {
+func collect(t *lexTest) (items []Item) {
 	// buf := bytes.NewBufferString()
-	l := lex(t.input)
+	l := New(t.input)
 	for {
 		item := l.nextItem()
 		items = append(items, item)
@@ -211,7 +211,7 @@ func collect(t *lexTest) (items []item) {
 	return
 }
 
-func equal(i1, i2 []item) bool {
+func equal(i1, i2 []Item) bool {
 	if len(i1) != len(i2) {
 		return false
 	}
@@ -234,10 +234,4 @@ func TestLex(t *testing.T) {
 		})
 
 	}
-}
-
-type stringTest struct {
-	name  string
-	input item
-	str   string
 }
