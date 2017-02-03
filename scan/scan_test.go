@@ -8,7 +8,7 @@ type lexTest struct {
 }
 
 func fEOF() Item {
-	return Item{itemEOF, "", 0}
+	return Item{ItemEOF, "", 0}
 }
 
 func itm(typ itemType, val string) Item {
@@ -17,171 +17,171 @@ func itm(typ itemType, val string) Item {
 
 var lexTests = []lexTest{
 	// just digits
-	{"0", []Item{itm(itemNumber, "0"), fEOF()}},
-	{"10", []Item{itm(itemNumber, "10"), fEOF()}},
-	{"0.2", []Item{itm(itemNumber, "0.2"), fEOF()}},
-	{"1.23", []Item{itm(itemNumber, "1.23"), fEOF()}},
-	{"-5", []Item{itm(itemNumber, "-5"), fEOF()}},
-	{"-5.1", []Item{itm(itemNumber, "-5.1"), fEOF()}},
-	{" 1  ", []Item{itm(itemNumber, "1"), fEOF()}},
+	{"0", []Item{itm(ItemNumber, "0"), fEOF()}},
+	{"10", []Item{itm(ItemNumber, "10"), fEOF()}},
+	{"0.2", []Item{itm(ItemNumber, "0.2"), fEOF()}},
+	{"1.23", []Item{itm(ItemNumber, "1.23"), fEOF()}},
+	{"-5", []Item{itm(ItemNumber, "-5"), fEOF()}},
+	{"-5.1", []Item{itm(ItemNumber, "-5.1"), fEOF()}},
+	{" 1  ", []Item{itm(ItemNumber, "1"), fEOF()}},
 	// incorrect
-	{"", []Item{itm(itemError, "Unexpected EOF - at col 0")}},
-	{"   ", []Item{itm(itemError, "Unexpected EOF - at col 3")}},
-	{"1.", []Item{itm(itemError, "Unexpected char - at col 2")}},
-	{"1. 0", []Item{itm(itemError, "Unexpected char - at col 2")}},
-	{"12d", []Item{itm(itemNumber, "12"), itm(itemError, "Unexpected char - at col 2")}},
-	{"- 5", []Item{itm(itemError, "Unexpected char - at col 1")}},
+	{"", []Item{itm(ItemError, "Unexpected EOF - at col 0")}},
+	{"   ", []Item{itm(ItemError, "Unexpected EOF - at col 3")}},
+	{"1.", []Item{itm(ItemError, "Unexpected char - at col 2")}},
+	{"1. 0", []Item{itm(ItemError, "Unexpected char - at col 2")}},
+	{"12d", []Item{itm(ItemNumber, "12"), itm(ItemError, "Unexpected char - at col 2")}},
+	{"- 5", []Item{itm(ItemError, "Unexpected char - at col 1")}},
 
 	// base operations
 	{"1+1", []Item{
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
 		fEOF()},
 	},
 	{"1-1", []Item{
-		itm(itemNumber, "1"),
-		itm(itemSub, "-"),
-		itm(itemNumber, "1"),
+		itm(ItemNumber, "1"),
+		itm(ItemSub, "-"),
+		itm(ItemNumber, "1"),
 		fEOF()},
 	},
 	{"1*1", []Item{
-		itm(itemNumber, "1"),
-		itm(itemMul, "*"),
-		itm(itemNumber, "1"),
+		itm(ItemNumber, "1"),
+		itm(ItemMul, "*"),
+		itm(ItemNumber, "1"),
 		fEOF()},
 	},
 	{"1/1", []Item{
-		itm(itemNumber, "1"),
-		itm(itemDiv, "/"),
-		itm(itemNumber, "1"),
+		itm(ItemNumber, "1"),
+		itm(ItemDiv, "/"),
+		itm(ItemNumber, "1"),
 		fEOF()},
 	},
 	{"1+1-2", []Item{
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemSub, "-"),
-		itm(itemNumber, "2"),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemSub, "-"),
+		itm(ItemNumber, "2"),
 		fEOF()},
 	},
 
 	//incorrect
 	{"1++2", []Item{
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemError, "Unexpected char - at col 2"),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemError, "Unexpected char - at col 2"),
 	}},
 	{"1+2+", []Item{
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "2"),
-		itm(itemAdd, "+"),
-		itm(itemError, "Unexpected EOF - at col 4"),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "2"),
+		itm(ItemAdd, "+"),
+		itm(ItemError, "Unexpected EOF - at col 4"),
 	}},
 
 	//complex operations
 	{"(1+1)/2", []Item{
-		itm(itemLParen, "("),
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemRParen, ")"),
-		itm(itemDiv, "/"),
-		itm(itemNumber, "2"),
+		itm(ItemLParen, "("),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemRParen, ")"),
+		itm(ItemDiv, "/"),
+		itm(ItemNumber, "2"),
 		fEOF()},
 	},
 	{"1+((1+1)/(-2-100))", []Item{
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemLParen, "("),
-		itm(itemLParen, "("),
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemRParen, ")"),
-		itm(itemDiv, "/"),
-		itm(itemLParen, "("),
-		itm(itemNumber, "-2"),
-		itm(itemSub, "-"),
-		itm(itemNumber, "100"),
-		itm(itemRParen, ")"),
-		itm(itemRParen, ")"),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemLParen, "("),
+		itm(ItemLParen, "("),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemRParen, ")"),
+		itm(ItemDiv, "/"),
+		itm(ItemLParen, "("),
+		itm(ItemNumber, "-2"),
+		itm(ItemSub, "-"),
+		itm(ItemNumber, "100"),
+		itm(ItemRParen, ")"),
+		itm(ItemRParen, ")"),
 		fEOF()},
 	},
 
 	//incorrect
 	{"1+1)/2", []Item{
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemError, "No matching opening parenteses for closing one at col 3"),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemError, "No matching opening parenteses for closing one at col 3"),
 	}},
 	{"(1+1))/2", []Item{
-		itm(itemLParen, "("),
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemRParen, ")"),
-		itm(itemError, "No matching opening parenteses for closing one at col 5"),
+		itm(ItemLParen, "("),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemRParen, ")"),
+		itm(ItemError, "No matching opening parenteses for closing one at col 5"),
 	}},
 	{"(1+1)(1/2)", []Item{
-		itm(itemLParen, "("),
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemRParen, ")"),
-		itm(itemError, "Unexpected char - at col 5"),
+		itm(ItemLParen, "("),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemRParen, ")"),
+		itm(ItemError, "Unexpected char - at col 5"),
 	}},
 	{"(1+1", []Item{
-		itm(itemLParen, "("),
-		itm(itemNumber, "1"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemError, "Unexpected EOF - at col 4"),
+		itm(ItemLParen, "("),
+		itm(ItemNumber, "1"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemError, "Unexpected EOF - at col 4"),
 	}},
 
 	// identifiers
 	{"t= 2", []Item{
-		itm(itemVariable, "t"),
-		itm(itemEqual, "="),
-		itm(itemNumber, "2"),
+		itm(ItemVariable, "t"),
+		itm(ItemEqual, "="),
+		itm(ItemNumber, "2"),
 		fEOF(),
 	}},
 	{"t+1", []Item{
-		itm(itemVariable, "t"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
+		itm(ItemVariable, "t"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
 		fEOF(),
 	}},
 	{"2*t+mtp", []Item{
-		itm(itemNumber, "2"),
-		itm(itemMul, "*"),
-		itm(itemVariable, "t"),
-		itm(itemAdd, "+"),
-		itm(itemVariable, "mtp"),
+		itm(ItemNumber, "2"),
+		itm(ItemMul, "*"),
+		itm(ItemVariable, "t"),
+		itm(ItemAdd, "+"),
+		itm(ItemVariable, "mtp"),
 		fEOF(),
 	}},
 	{"t==", []Item{
-		itm(itemVariable, "t"),
-		itm(itemEqual, "="),
-		itm(itemError, "Unexpected char - at col 2"),
+		itm(ItemVariable, "t"),
+		itm(ItemEqual, "="),
+		itm(ItemError, "Unexpected char - at col 2"),
 	}},
 	{"t=1=1", []Item{
-		itm(itemVariable, "t"),
-		itm(itemEqual, "="),
-		itm(itemNumber, "1"),
-		itm(itemError, "Unexpected char - at col 3"),
+		itm(ItemVariable, "t"),
+		itm(ItemEqual, "="),
+		itm(ItemNumber, "1"),
+		itm(ItemError, "Unexpected char - at col 3"),
 	}},
 	{"t+1=1", []Item{
-		itm(itemVariable, "t"),
-		itm(itemAdd, "+"),
-		itm(itemNumber, "1"),
-		itm(itemError, "Unexpected char - at col 3"),
+		itm(ItemVariable, "t"),
+		itm(ItemAdd, "+"),
+		itm(ItemNumber, "1"),
+		itm(ItemError, "Unexpected char - at col 3"),
 	}},
 	{"t$s=1", []Item{
-		itm(itemVariable, "t"),
-		itm(itemError, "Unexpected char - at col 1"),
+		itm(ItemVariable, "t"),
+		itm(ItemError, "Unexpected char - at col 1"),
 	}},
 
 	// {"(1 + 2)", []item{
@@ -204,7 +204,7 @@ func collect(t *lexTest) (items []Item) {
 	for {
 		item := l.nextItem()
 		items = append(items, item)
-		if item.typ == itemEOF || item.typ == itemError {
+		if item.Typ == ItemEOF || item.Typ == ItemError {
 			break
 		}
 	}
@@ -216,7 +216,7 @@ func equal(i1, i2 []Item) bool {
 		return false
 	}
 	for k := range i1 {
-		if i1[k].typ != i2[k].typ || i1[k].val != i2[k].val {
+		if i1[k].Typ != i2[k].Typ || i1[k].Val != i2[k].Val {
 			return false
 		}
 	}

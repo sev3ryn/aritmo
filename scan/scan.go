@@ -9,28 +9,28 @@ type itemType int
 
 //go:generate stringer -type=itemType
 const (
-	itemEOF itemType = iota
-	itemNumber
-	itemVariable
-	itemEqual
-	itemAdd
-	itemSub
-	itemMul
-	itemDiv
-	itemLParen
-	itemRParen
-	itemError
+	ItemEOF itemType = iota
+	ItemNumber
+	ItemVariable
+	ItemEqual
+	ItemAdd
+	ItemSub
+	ItemMul
+	ItemDiv
+	ItemLParen
+	ItemRParen
+	ItemError
 )
 
 // Item atomic piece of scanner output. May be number, operator or variable
 type Item struct {
-	typ itemType
-	val string
+	Typ itemType
+	Val string
 	col int
 }
 
 func (i Item) String() string {
-	return fmt.Sprintf("{%s:%q}", i.typ, i.val)
+	return fmt.Sprintf("{%s:%q}", i.Typ, i.Val)
 }
 
 type currencyType int
@@ -106,7 +106,7 @@ func (s *Scanner) emit(t itemType) {
 
 // errorf - emits itemError
 func (s *Scanner) errorf(format string, args ...interface{}) stateFn {
-	s.items <- Item{itemError, fmt.Sprintf(format, args...), s.start}
+	s.items <- Item{ItemError, fmt.Sprintf(format, args...), s.start}
 	return nil
 }
 
@@ -116,7 +116,7 @@ func (s *Scanner) emitEOF(unexpected bool) stateFn {
 		return s.unexpectedErr("EOF")
 	}
 
-	s.items <- Item{itemEOF, "", s.col}
+	s.items <- Item{ItemEOF, "", s.col}
 	return nil
 }
 
@@ -158,7 +158,7 @@ func lexStart(s *Scanner) stateFn {
 
 		if s.peek() == '=' {
 			s.next()
-			s.emit(itemEqual)
+			s.emit(ItemEqual)
 			return lexOperand
 		}
 		return lexOperator
@@ -195,7 +195,7 @@ func lexOperand(s *Scanner) stateFn {
 	case r == '(':
 		s.openParenCnt++
 		s.next()
-		s.emit(itemLParen)
+		s.emit(ItemLParen)
 		return lexOperand
 	default:
 		return s.unexpectedErr("char")
@@ -217,23 +217,23 @@ func lexOperator(s *Scanner) stateFn {
 	switch {
 	case r == '+':
 		s.next()
-		s.emit(itemAdd)
+		s.emit(ItemAdd)
 	case r == '-':
 		s.next()
-		s.emit(itemSub)
+		s.emit(ItemSub)
 	case r == '*':
 		s.next()
-		s.emit(itemMul)
+		s.emit(ItemMul)
 	case r == '/':
 		s.next()
-		s.emit(itemDiv)
+		s.emit(ItemDiv)
 	case r == ')':
 		if s.openParenCnt == 0 {
 			return s.errorf("No matching opening parenteses for closing one at col %d", s.col)
 		}
 		s.openParenCnt--
 		s.next()
-		s.emit(itemRParen)
+		s.emit(ItemRParen)
 		return lexOperator
 	default:
 		return s.unexpectedErr("char")
@@ -255,7 +255,7 @@ func lexNumber(s *Scanner) stateFn {
 		s.iterate(unicode.IsDigit)
 	}
 
-	s.emit(itemNumber)
+	s.emit(ItemNumber)
 	return lexOperator
 }
 
@@ -263,6 +263,6 @@ func lexVariable(s *Scanner) stateFn {
 	// catch identifier declaration. First symbol is letter - else alphanumeric
 	s.next()
 	s.iterate(func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' })
-	s.emit(itemVariable)
+	s.emit(ItemVariable)
 	return lexOperator
 }
