@@ -38,7 +38,7 @@ func (p *Parser) getOperand(tok scan.Item) float64 {
 
 type operation func(float64, float64) float64
 
-func (p *Parser) getOpationFn(i scan.Item) (operation, int) {
+func (p *Parser) getOperationFn(i scan.Item) (operation, int) {
 	switch i.Typ {
 	case scan.ItemAdd:
 		return func(a, b float64) float64 { return a + b }, 1
@@ -58,7 +58,7 @@ func (p *Parser) getOpationFn(i scan.Item) (operation, int) {
 func (p *Parser) exec2(valLeft float64, op operation, pr int) float64 {
 
 	tmpLeft := p.getOperand(p.next())
-	f, nextPr := p.getOpationFn(p.next())
+	f, nextPr := p.getOperationFn(p.next())
 
 	if f == nil {
 		return op(valLeft, tmpLeft)
@@ -79,7 +79,7 @@ func getVal(i scan.Item) float64 {
 
 func (p *Parser) exe() float64 {
 	v := p.getOperand(p.peek())
-	f, pr := p.getOpationFn(p.next())
+	f, pr := p.getOperationFn(p.next())
 	if f == nil {
 		return v
 	}
@@ -97,35 +97,16 @@ func (p *Parser) exec() float64 {
 	return v
 }
 
-// func (p *Parser) exec() float64 {
-
-// 	var f operation
-// 	valLeft := getVal(p.peek())
-
-// 	for {
-
-// 		f, _ = getOpFunc(p.next())
-
-// 		if f == nil {
-// 			return valLeft
-// 		}
-
-// 		tmpVal := getVal(p.next())
-
-// 		valLeft = f(valLeft, tmpVal)
-
-// 	}
-// 	// unreachable
-// 	return 0
-// }
-
+// New - costructor for Parser
 func New(s *scan.Scanner) *Parser {
 	//p.tokens = p.tokens[:0]
 	p := &Parser{tokens: []scan.Item{}}
 	for {
 		tok := s.NextItem()
 		switch tok.Typ {
-		case scan.ItemError, scan.ItemEOF:
+		case scan.ItemError:
+			p.tokens = []scan.Item{scan.Item{Typ: scan.ItemEOF}}
+		case scan.ItemEOF:
 			p.tokens = append(p.tokens, tok)
 			return p
 		default:
@@ -133,21 +114,3 @@ func New(s *scan.Scanner) *Parser {
 		}
 	}
 }
-
-// func (p *parser) peek()  {
-
-// 	return
-// }
-
-// func (p *parser) run() {
-// 	if p.token.Typ == scan.ItemVariable {
-// 		val, ok := variables[p.token.val]
-// 		if !ok {
-// 			return "expect = "
-// 		}
-// 		return val
-// 	}
-
-// 	if p.token.Typ == scan.ItemOperator
-
-// }

@@ -30,7 +30,7 @@ type Item struct {
 }
 
 func (i Item) String() string {
-	return fmt.Sprintf("{%s:%q}", i.Typ, i.Val)
+	return fmt.Sprintf("%s:%q", i.Typ, i.Val)
 }
 
 type currencyType int
@@ -59,20 +59,22 @@ type Scanner struct {
 	openParenCnt int       // number of opened parenteses
 }
 
-func (l *Scanner) NextItem() Item {
-	item := <-l.items
+// NextItem - returns next emited item by scanner
+func (s *Scanner) NextItem() Item {
+	item := <-s.items
 	return item
 }
 
+// New - costructor for Scanner
 func New(input string) *Scanner {
-	l := &Scanner{
+	s := &Scanner{
 		input: []rune(input),
 		start: 0,
 		col:   0,
 		items: make(chan Item),
 	}
-	go l.run()
-	return l
+	go s.run()
+	return s
 }
 
 func (s *Scanner) run() {
