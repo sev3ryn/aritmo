@@ -25,38 +25,75 @@ func (p *Parser) next() scan.Item {
 	return p.tokens[0]
 }
 
-func (p *Parser) exec() float64 {
+func (p *Parser) exec2(valLeft float64, op operation, pr int) float64 {
 
-	var f func(float64, float64) float64
-	var itmOp scan.Item
-	itmLeft := p.peek()
-	valLeft, _ := strconv.ParseFloat(itmLeft.Val, 64)
-	for {
-		itmOp = p.next()
-		switch itmOp.Typ {
-		case scan.ItemAdd:
-			f = func(a, b float64) float64 { return a + b }
-		case scan.ItemSub:
-			f = func(a, b float64) float64 { return a - b }
-		case scan.ItemMul:
-			f = func(a, b float64) float64 { return a * b }
-		case scan.ItemDiv:
-			f = func(a, b float64) float64 { return a / b }
-		case scan.ItemEOF:
-			return valLeft
-		default:
-			panic("yo")
-		}
+	tmpLeft := getVal(p.next())
+	f, nextPr := getOpFunc(p.next())
 
-		itmLeft = p.next()
-		tmpVal, _ := strconv.ParseFloat(itmLeft.Val, 64)
-
-		valLeft = f(valLeft, tmpVal)
-
+	if f == nil {
+		return op(valLeft, tmpLeft)
 	}
-	return valLeft
+
+	if nextPr > pr {
+		return op(valLeft, p.exec2(tmpLeft, f, nextPr))
+	}
+
+	return p.exec2(op(valLeft, tmpLeft), f, nextPr)
 
 }
+
+func getVal(i scan.Item) float64 {
+	v, _ := strconv.ParseFloat(i.Val, 64)
+	return v
+}
+
+type operation func(float64, float64) float64
+
+func getOpFunc(i scan.Item) (operation, int) {
+	switch i.Typ {
+	case scan.ItemAdd:
+		return func(a, b float64) float64 { return a + b }, 1
+	case scan.ItemSub:
+		return func(a, b float64) float64 { return a - b }, 1
+	case scan.ItemMul:
+		return func(a, b float64) float64 { return a * b }, 10
+	case scan.ItemDiv:
+		return func(a, b float64) float64 { return a / b }, 10
+	case scan.ItemEOF:
+		return nil, 0
+	default:
+		panic("yo")
+	}
+}
+
+func (p *Parser) exec() float64 {
+	v := getVal(p.peek())
+	f, pr := getOpFunc(p.next())
+	return p.exec2(v, f, pr)
+
+}
+
+// func (p *Parser) exec() float64 {
+
+// 	var f operation
+// 	valLeft := getVal(p.peek())
+
+// 	for {
+
+// 		f, _ = getOpFunc(p.next())
+
+// 		if f == nil {
+// 			return valLeft
+// 		}
+
+// 		tmpVal := getVal(p.next())
+
+// 		valLeft = f(valLeft, tmpVal)
+
+// 	}
+// 	// unreachable
+// 	return 0
+// }
 
 func New(s *scan.Scanner) *Parser {
 	//p.tokens = p.tokens[:0]
