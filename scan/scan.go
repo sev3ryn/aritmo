@@ -59,7 +59,7 @@ type Scanner struct {
 	openParenCnt int       // number of opened parenteses
 }
 
-func (l *Scanner) nextItem() Item {
+func (l *Scanner) NextItem() Item {
 	item := <-l.items
 	return item
 }

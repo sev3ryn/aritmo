@@ -202,7 +202,7 @@ func collect(t *lexTest) (items []Item) {
 	// buf := bytes.NewBufferString()
 	l := New(t.input)
 	for {
-		item := l.nextItem()
+		item := l.NextItem()
 		items = append(items, item)
 		if item.Typ == ItemEOF || item.Typ == ItemError {
 			break
