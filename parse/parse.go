@@ -26,75 +26,125 @@ func (p *Parser) next() scan.Item {
 	return p.tokens[0]
 }
 
-func (p *Parser) getOperand(tok scan.Item) float64 {
-	if tok.Typ != scan.ItemLParen {
+func (p *Parser) getOperand(tok scan.Item) (float64, error) {
+	switch tok.Typ {
+	case scan.ItemError:
+		return 0, fmt.Errorf(tok.Val)
+	case scan.ItemLParen:
+		// calculate statement in parenteses as new statement
+		p.next()
+		return p.execStatement()
+	default:
 		return getVal(tok)
 	}
 
-	p.next()
-	return p.exec()
-
 }
 
-type operation func(float64, float64) float64
+type operation struct {
+	f           func(float64, float64) (float64, error)
+	precendance int
+}
 
-func (p *Parser) getOperationFn(i scan.Item) (operation, int) {
+func (p *Parser) getOperationFn(i scan.Item) (*operation, error) {
 	switch i.Typ {
 	case scan.ItemAdd:
-		return func(a, b float64) float64 { return a + b }, 1
+		return &operation{
+			f:           func(a, b float64) (float64, error) { return a + b, nil },
+			precendance: 1,
+		}, nil
 	case scan.ItemSub:
-		return func(a, b float64) float64 { return a - b }, 1
+		return &operation{
+			f:           func(a, b float64) (float64, error) { return a - b, nil },
+			precendance: 1,
+		}, nil
 	case scan.ItemMul:
-		return func(a, b float64) float64 { return a * b }, 10
+		return &operation{
+			f:           func(a, b float64) (float64, error) { return a * b, nil },
+			precendance: 10,
+		}, nil
+
 	case scan.ItemDiv:
-		return func(a, b float64) float64 { return a / b }, 10
-	case scan.ItemRParen, scan.ItemEOF:
-		return nil, 0
-	default:
-		panic("yo")
+		return &operation{
+			f: func(a, b float64) (float64, error) {
+				if b == 0 {
+					return 0, fmt.Errorf("Can't divide by zero")
+				}
+				return a / b, nil
+			},
+			precendance: 10,
+		}, nil
+	case scan.ItemError:
+		return nil, fmt.Errorf(i.Val)
+	case scan.ItemEOF:
+		return nil, nil
+	case scan.ItemRParen: // end of substatement
+		return nil, nil
+	default: //should never happen
+		panic("Unsupported operation")
 	}
 }
 
-func (p *Parser) exec2(valLeft float64, op operation, pr int) float64 {
+func (p *Parser) execOperation(valLeft float64, op *operation) (float64, error) {
 
-	tmpLeft := p.getOperand(p.next())
-	f, nextPr := p.getOperationFn(p.next())
+	valRight, err := p.getOperand(p.next())
+	if err != nil {
+		return 0, err
+	}
 
+	nextOp, err := p.getOperationFn(p.next())
+	if err != nil {
+		return 0, err
+	}
+
+	if nextOp == nil {
+		return op.f(valLeft, valRight)
+	}
+
+	if nextOp.precendance > op.precendance {
+		valRight, err = p.execOperation(valRight, nextOp)
+		if err != nil {
+			return 0, err
+		}
+		return op.f(valLeft, valRight)
+	}
+
+	valLeft, err = op.f(valLeft, valRight)
+	if err != nil {
+		return 0, err
+	}
+	return p.execOperation(valLeft, nextOp)
+
+}
+
+func getVal(i scan.Item) (float64, error) {
+	return strconv.ParseFloat(i.Val, 64)
+}
+
+func (p *Parser) exe() (float64, error) {
+	v, err := p.getOperand(p.peek())
+
+	if err != nil {
+		return 0, err
+	}
+
+	f, err := p.getOperationFn(p.next())
 	if f == nil {
-		return op(valLeft, tmpLeft)
+		return v, nil
+	} else if err != nil {
+		return 0, err
 	}
-
-	if nextPr > pr {
-		return op(valLeft, p.exec2(tmpLeft, f, nextPr))
-	}
-
-	return p.exec2(op(valLeft, tmpLeft), f, nextPr)
-
-}
-
-func getVal(i scan.Item) float64 {
-	v, _ := strconv.ParseFloat(i.Val, 64)
-	return v
-}
-
-func (p *Parser) exe() float64 {
-	v := p.getOperand(p.peek())
-	f, pr := p.getOperationFn(p.next())
-	if f == nil {
-		return v
-	}
-	return p.exec2(v, f, pr)
+	return p.execOperation(v, f)
 
 }
 
 var i int
 
-func (p *Parser) exec() float64 {
+func (p *Parser) execStatement() (float64, error) {
 	i++
 	z := i
-	v := p.exe()
+	v, err := p.exe()
 	fmt.Printf("%d: %f\n", z, v)
-	return v
+	return v, err
 }
 
 // New - costructor for Parser
@@ -105,7 +155,8 @@ func New(s *scan.Scanner) *Parser {
 		tok := s.NextItem()
 		switch tok.Typ {
 		case scan.ItemError:
-			p.tokens = []scan.Item{scan.Item{Typ: scan.ItemEOF}}
+			p.tokens = []scan.Item{tok}
+			return p
 		case scan.ItemEOF:
 			p.tokens = append(p.tokens, tok)
 			return p
