@@ -33,7 +33,7 @@ func (p *Parser) getOperand(tok scan.Item) (float64, error) {
 	case scan.ItemLParen:
 		// calculate statement in parenteses as new statement
 		p.next()
-		return p.execStatement()
+		return p.ExecStatement()
 	default:
 		return getVal(tok)
 	}
@@ -137,13 +137,11 @@ func (p *Parser) exe() (float64, error) {
 
 }
 
-var i int
-
-func (p *Parser) execStatement() (float64, error) {
-	i++
-	z := i
+func (p *Parser) ExecStatement() (float64, error) {
+	//i++
+	//z := i
 	v, err := p.exe()
-	fmt.Printf("%d: %f\n", z, v)
+	//fmt.Printf("%d: %f\n", z, v)
 	return v, err
 }
 
