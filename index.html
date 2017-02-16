@@ -2,14 +2,20 @@
 
 <head>
 	<title>GopherJS Test</title>
-	<style type="text/css">#editor{font-size: 16px; position:absolute;top:0;right:0;bottom:0;left:0;}</style>
+	<style type="text/css">
+	#editor{position:absolute;top:0;right:40%;bottom:0;left:20%; background: lightgoldenrodyellow}
+	#result{position:absolute;top:0;right:20%;bottom:0;left:60%; background: orangered}
+	#result .ace_cursor{visibility:hidden}
+	</style>
 	<script src="ace.js" type="text/javascript"></script>
+	<!--<script src="keybinding.js" type="text/javascript"></script>-->
 	<script src="theme-iplastic.js" type="text/javascript"></script>
 	<script src="mode-golang.js" type="text/javascript"></script>
 </head>
 
 <body>
-	<div id="editor" focus></div>
+	<div id="editor"></div>	
+	<div id="result"></div>
 	<script src="aritmo.js" type="text/javascript"></script>
 </body>
 
