@@ -13,13 +13,11 @@ const (
 	ItemNumber
 	ItemVariable
 	ItemEqual
-	ItemAdd
-	ItemSub
-	ItemMul
-	ItemDiv
+	ItemOperation
 	ItemLParen
 	ItemRParen
 	ItemError
+	ItemTypeConv
 )
 
 // Item atomic piece of scanner output. May be number, operator or variable
@@ -219,16 +217,22 @@ func lexOperator(s *Scanner) stateFn {
 	switch {
 	case r == '+':
 		s.next()
-		s.emit(ItemAdd)
+		s.emit(ItemOperation)
 	case r == '-':
 		s.next()
-		s.emit(ItemSub)
+		s.emit(ItemOperation)
 	case r == '*':
 		s.next()
-		s.emit(ItemMul)
+		s.emit(ItemOperation)
 	case r == '/':
 		s.next()
-		s.emit(ItemDiv)
+		s.emit(ItemOperation)
+	case r == 't':
+		if s.next() != 'o' {
+			s.unexpectedErr("char")
+		}
+		s.next()
+		s.emit(ItemTypeConv)
 	case r == ')':
 		if s.openParenCnt == 0 {
 			return s.errorf("No matching opening parenteses for closing one at col %d", s.col)

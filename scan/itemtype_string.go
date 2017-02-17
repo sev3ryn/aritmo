@@ -4,9 +4,9 @@ package scan
 
 import "fmt"
 
-const _itemType_name = "ItemEOFItemNumberItemVariableItemEqualItemAddItemSubItemMulItemDivItemLParenItemRParenItemError"
+const _itemType_name = "ItemEOFItemNumberItemVariableItemEqualItemOperationItemLParenItemRParenItemErrorItemTypeConv"
 
-var _itemType_index = [...]uint8{0, 7, 17, 29, 38, 45, 52, 59, 66, 76, 86, 95}
+var _itemType_index = [...]uint8{0, 7, 17, 29, 38, 51, 61, 71, 80, 92}
 
 func (i itemType) String() string {
 	if i < 0 || i >= itemType(len(_itemType_index)-1) {

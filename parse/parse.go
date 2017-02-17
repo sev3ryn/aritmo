@@ -40,51 +40,31 @@ func (p *Parser) getOperand(tok scan.Item) (float64, error) {
 
 }
 
-type operation struct {
-	f           func(float64, float64) (float64, error)
-	precendance int
-}
+func (p *Parser) getOperationFn(i scan.Item) (operation, error) {
 
-func (p *Parser) getOperationFn(i scan.Item) (*operation, error) {
-	switch i.Typ {
-	case scan.ItemAdd:
-		return &operation{
-			f:           func(a, b float64) (float64, error) { return a + b, nil },
-			precendance: 1,
-		}, nil
-	case scan.ItemSub:
-		return &operation{
-			f:           func(a, b float64) (float64, error) { return a - b, nil },
-			precendance: 1,
-		}, nil
-	case scan.ItemMul:
-		return &operation{
-			f:           func(a, b float64) (float64, error) { return a * b, nil },
-			precendance: 10,
-		}, nil
-
-	case scan.ItemDiv:
-		return &operation{
-			f: func(a, b float64) (float64, error) {
-				if b == 0 {
-					return 0, fmt.Errorf("Can't divide by zero")
-				}
-				return a / b, nil
-			},
-			precendance: 10,
-		}, nil
-	case scan.ItemError:
+	if i.Typ == scan.ItemError {
 		return nil, fmt.Errorf(i.Val)
-	case scan.ItemEOF:
+	} else if i.Typ == scan.ItemEOF {
 		return nil, nil
-	case scan.ItemRParen: // end of substatement
+	} else if i.Typ == scan.ItemRParen { // end of substatement
 		return nil, nil
-	default: //should never happen
-		panic("Unsupported operation")
+		// } else if i.Typ == scan.ItemTypeConv {
+		// 	return &operation{
+		// 		f:           func(a, _ float64) (float64, error) { return 0, nil },
+		// 		precendance: 5,
+		// 	}, nil
+	} else if i.Typ == scan.ItemOperation {
+
+		op, ok := operationMap[i.Val]
+		if !ok {
+			panic("Unsupported operation. Something went wrong")
+		}
+		return op, nil
 	}
+	panic("Unsupported operation")
 }
 
-func (p *Parser) execOperation(valLeft float64, op *operation) (float64, error) {
+func (p *Parser) execOperation(valLeft float64, op operation) (float64, error) {
 
 	valRight, err := p.getOperand(p.next())
 	if err != nil {
@@ -97,18 +77,18 @@ func (p *Parser) execOperation(valLeft float64, op *operation) (float64, error) 
 	}
 
 	if nextOp == nil {
-		return op.f(valLeft, valRight)
+		return op.Exec([]float64{valLeft, valRight})
 	}
 
-	if nextOp.precendance > op.precendance {
+	if nextOp.GetPrec() > op.GetPrec() {
 		valRight, err = p.execOperation(valRight, nextOp)
 		if err != nil {
 			return 0, err
 		}
-		return op.f(valLeft, valRight)
+		return op.Exec([]float64{valLeft, valRight})
 	}
 
-	valLeft, err = op.f(valLeft, valRight)
+	valLeft, err = op.Exec([]float64{valLeft, valRight})
 	if err != nil {
 		return 0, err
 	}
@@ -138,11 +118,8 @@ func (p *Parser) exe() (float64, error) {
 }
 
 func (p *Parser) ExecStatement() (float64, error) {
-	//i++
-	//z := i
-	v, err := p.exe()
-	//fmt.Printf("%d: %f\n", z, v)
-	return v, err
+
+	return p.exe()
 }
 
 // New - costructor for Parser
