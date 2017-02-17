@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/sev3ryn/aritmo/parse"
@@ -10,8 +11,28 @@ import (
 const precision = 2
 
 func RoundFloat(x float64, prec int) float64 {
-	f, _ := strconv.ParseFloat(strconv.FormatFloat(x, 'g', prec, 64), 64)
-	return f
+	if math.IsNaN(x) || math.IsInf(x, 0) {
+		return x
+	}
+
+	sign := 1.0
+	if x < 0 {
+		sign = -1
+		x *= -1
+	}
+
+	var rounder float64
+	pow := math.Pow(10, float64(prec))
+	intermed := x * pow
+	_, frac := math.Modf(intermed)
+
+	if frac >= 0.5 {
+		rounder = math.Ceil(intermed)
+	} else {
+		rounder = math.Floor(intermed)
+	}
+
+	return rounder / pow * sign
 }
 
 func calculate(input string) string {
@@ -21,7 +42,7 @@ func calculate(input string) string {
 		return ""
 	}
 
-	output = RoundFloat(output, precision+1)
+	output = RoundFloat(output, precision)
 
 	return strconv.FormatFloat(output, 'f', -1, 64)
 
