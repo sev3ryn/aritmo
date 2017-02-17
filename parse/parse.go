@@ -44,7 +44,6 @@ func (p *Parser) getOperand(tok scan.Item) (float64, error) {
 }
 
 func (p *Parser) getOperationFn(i scan.Item) (operation, error) {
-
 	if i.Typ == scan.ItemError {
 		return nil, fmt.Errorf(i.Val)
 	} else if i.Typ == scan.ItemEOF {
@@ -112,10 +111,10 @@ func (p *Parser) execStatement() (float64, error) {
 	}
 
 	f, err := p.getOperationFn(p.next())
-	if f == nil {
-		return v, nil
-	} else if err != nil {
+	if err != nil {
 		return 0, err
+	} else if f == nil {
+		return v, nil
 	}
 	return p.execOperation(v, f)
 }
@@ -148,7 +147,7 @@ func New(s *scan.Scanner) *Parser {
 		tok := s.NextItem()
 		switch tok.Typ {
 		case scan.ItemError:
-			p.tokens = []scan.Item{tok}
+			p.tokens = append(p.tokens, tok)
 			return p
 		case scan.ItemEOF:
 			p.tokens = append(p.tokens, tok)
