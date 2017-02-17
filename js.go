@@ -3,11 +3,8 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/sev3ryn/aritmo/parse"
-	"github.com/sev3ryn/aritmo/scan"
+
 	"maunium.net/go/gopher-ace"
 )
 
@@ -75,17 +72,9 @@ func refresh(
 	}
 
 	var input string
-	var output float64
-	var err error
-	var p *parse.Parser
 	for line := startLine; line < endLine+1; line++ {
 		input = eSession.GetLine(line)
-		p = parse.New(scan.New(input))
-		if output, err = p.ExecStatement(); err == nil {
-			rSession.Replace(getLineRange(line), fmt.Sprintf("%f", output))
-		} else {
-			rSession.Replace(getLineRange(line), "")
-		}
+		rSession.Replace(getLineRange(line), calculate(input))
 	}
 }
 
@@ -99,7 +88,7 @@ func init() {
 	syncScroll(eSession, rSession)
 	syncScroll(rSession, eSession)
 
-	e.Get("commands").Get("byName").Get("backspace").Set("exec", func() { fmt.Println("backspace") })
+	//e.Get("commands").Get("byName").Get("backspace").Set("exec", func() { fmt.Println("backspace") })
 	//e.Get("commands").Get("byName").Get("enter").Set("exec", func(){fmt.Println("enter")})
 
 	var line int
