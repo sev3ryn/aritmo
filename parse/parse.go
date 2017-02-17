@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/sev3ryn/aritmo/scan"
+	"github.com/sev3ryn/aritmo/storage"
 )
 
 type Result struct {
@@ -33,7 +34,9 @@ func (p *Parser) getOperand(tok scan.Item) (float64, error) {
 	case scan.ItemLParen:
 		// calculate statement in parenteses as new statement
 		p.next()
-		return p.ExecStatement()
+		return p.execStatement()
+	case scan.ItemVariable:
+		return storage.RAMStore.Get(tok.Val)
 	default:
 		return getVal(tok)
 	}
@@ -100,7 +103,8 @@ func getVal(i scan.Item) (float64, error) {
 	return strconv.ParseFloat(i.Val, 64)
 }
 
-func (p *Parser) exe() (float64, error) {
+func (p *Parser) execStatement() (float64, error) {
+
 	v, err := p.getOperand(p.peek())
 
 	if err != nil {
@@ -114,12 +118,26 @@ func (p *Parser) exe() (float64, error) {
 		return 0, err
 	}
 	return p.execOperation(v, f)
-
 }
 
 func (p *Parser) ExecStatement() (float64, error) {
 
-	return p.exe()
+	// case of assignment
+	if len(p.tokens) > 2 {
+
+		firstTok := p.tokens[0]
+		secondTok := p.tokens[1]
+		if firstTok.Typ == scan.ItemVariable && secondTok.Typ == scan.ItemEqual {
+			p.next()
+			p.next()
+
+			v, err := p.execStatement()
+			storage.RAMStore[firstTok.Val] = storage.WrapStoreItem(v, err)
+			return v, err
+		}
+	}
+
+	return p.execStatement()
 }
 
 // New - costructor for Parser
