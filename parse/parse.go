@@ -14,6 +14,7 @@ type Result struct {
 
 type Parser struct {
 	tokens []scan.Item
+	store  storage.Store
 }
 
 func (p *Parser) peek() scan.Item {
@@ -131,7 +132,12 @@ func (p *Parser) ExecStatement() (float64, error) {
 			p.next()
 
 			v, err := p.execStatement()
-			storage.RAMStore[firstTok.Val] = storage.WrapStoreItem(v, err)
+			// IO errors on storage should crash application
+			ioErr := p.store.Save(firstTok.Val, v, err)
+			if ioErr != nil {
+				panic(ioErr)
+			}
+
 			return v, err
 		}
 	}
@@ -140,9 +146,9 @@ func (p *Parser) ExecStatement() (float64, error) {
 }
 
 // New - costructor for Parser
-func New(s *scan.Scanner) *Parser {
+func New(s *scan.Scanner, st storage.Store) *Parser {
 	//p.tokens = p.tokens[:0]
-	p := &Parser{tokens: []scan.Item{}}
+	p := &Parser{tokens: []scan.Item{}, store: st}
 	for {
 		tok := s.NextItem()
 		switch tok.Typ {

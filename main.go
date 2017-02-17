@@ -6,6 +6,7 @@ import (
 
 	"github.com/sev3ryn/aritmo/parse"
 	"github.com/sev3ryn/aritmo/scan"
+	"github.com/sev3ryn/aritmo/storage"
 )
 
 const precision = 2
@@ -35,8 +36,10 @@ func RoundFloat(x float64, prec int) float64 {
 	return rounder / pow * sign
 }
 
+var store = storage.RAMStore
+
 func calculate(input string) string {
-	p := parse.New(scan.New(input))
+	p := parse.New(scan.New(input), store)
 	output, err := p.ExecStatement()
 	if err != nil {
 		return ""

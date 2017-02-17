@@ -2,29 +2,41 @@ package storage
 
 import "fmt"
 
+type Store interface {
+	Save(key string, val float64, err error) error
+	Get(key string) (val float64, err error)
+	Remove(key string) error
+}
+
 type StoreItem struct {
 	val float64
 	ok  bool
 }
 
-type Store map[string]StoreItem
+type StoreItemMap map[string]StoreItem
 
-var RAMStore = Store{}
+var RAMStore = StoreItemMap{}
 
-func WrapStoreItem(v float64, err error) StoreItem {
+func (s StoreItemMap) Save(key string, val float64, err error) error {
 	if err != nil {
-
-		return StoreItem{ok: false}
+		s[key] = StoreItem{ok: false}
+		return nil
 	}
-	return StoreItem{val: v, ok: true}
+	s[key] = StoreItem{val: val, ok: true}
+	return nil
 }
 
-func (s Store) Get(k string) (float64, error) {
+func (s StoreItemMap) Get(k string) (float64, error) {
 	v, ok := s[k]
 	if !ok {
-		return 0, fmt.Errorf("No such variable ", k)
+		return 0, fmt.Errorf("No such variable %s", k)
 	} else if !v.ok {
-		return 0, fmt.Errorf("Invalid variable ", k)
+		return 0, fmt.Errorf("Invalid variable %s", k)
 	}
 	return v.val, nil
+}
+
+func (s StoreItemMap) Remove(k string) error {
+	s[k] = StoreItem{}
+	return nil
 }

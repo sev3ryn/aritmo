@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/sev3ryn/aritmo/scan"
+	"github.com/sev3ryn/aritmo/storage"
 )
 
 type parseTest struct {
@@ -33,7 +34,7 @@ func TestParser(t *testing.T) {
 	for _, tst := range parseTests {
 		t.Run(tst.input, func(t *testing.T) {
 			s := scan.New(tst.input)
-			p := New(s)
+			p := New(s, storage.RAMStore)
 			if res, _ := p.execStatement(); res != tst.result {
 				t.Errorf("%s=%f instead of %f", tst.input, res, tst.result)
 			}
