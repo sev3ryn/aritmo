@@ -4,6 +4,8 @@ import (
 	"math"
 	"strconv"
 
+	"fmt"
+
 	"github.com/sev3ryn/aritmo/parse"
 	"github.com/sev3ryn/aritmo/scan"
 	"github.com/sev3ryn/aritmo/storage"
@@ -38,16 +40,17 @@ func RoundFloat(x float64, prec int) float64 {
 
 var store = storage.RAMStore
 
-func calculate(input string) string {
+func calculate(line int, input string) string {
+	store.CurrLine = line
 	p := parse.New(scan.New(input), store)
 	output, err := p.ExecStatement()
 	if err != nil {
 		return ""
 	}
 
-	output = RoundFloat(output, precision)
+	output.Val = RoundFloat(output.Val, precision)
 
-	return strconv.FormatFloat(output, 'f', -1, 64)
+	return fmt.Sprintf("%s %s", strconv.FormatFloat(output.Val, 'f', -1, 64), output.Typ.DisplayName)
 
 }
 

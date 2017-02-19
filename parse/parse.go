@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/sev3ryn/aritmo/datatype"
 	"github.com/sev3ryn/aritmo/scan"
 	"github.com/sev3ryn/aritmo/storage"
 )
-
-type Result struct {
-	val float64
-}
 
 type Parser struct {
 	tokens []scan.Item
@@ -28,18 +25,25 @@ func (p *Parser) next() scan.Item {
 	return p.tokens[0]
 }
 
-func (p *Parser) getOperand(tok scan.Item) (float64, error) {
+func (p *Parser) getOperand(tok scan.Item) (r storage.Result, err error) {
 	switch tok.Typ {
 	case scan.ItemError:
-		return 0, fmt.Errorf(tok.Val)
+		return storage.Result{}, fmt.Errorf(tok.Val)
 	case scan.ItemLParen:
 		// calculate statement in parenteses as new statement
 		p.next()
 		return p.execStatement()
 	case scan.ItemVariable:
-		return storage.RAMStore.Get(tok.Val)
+		return p.store.Get(tok.Val)
 	default:
-		return getVal(tok)
+		//r = storage.Result{}
+		r.Val, err = getVal(tok)
+		if err != nil {
+			return
+		}
+		r.Typ, err = getTyp(p.next())
+
+		return r, err
 	}
 
 }
@@ -67,33 +71,33 @@ func (p *Parser) getOperationFn(i scan.Item) (operation, error) {
 	panic("Unsupported operation")
 }
 
-func (p *Parser) execOperation(valLeft float64, op operation) (float64, error) {
+func (p *Parser) execOperation(valLeft storage.Result, op operation) (storage.Result, error) {
 
 	valRight, err := p.getOperand(p.next())
 	if err != nil {
-		return 0, err
+		return storage.Result{}, err
 	}
 
 	nextOp, err := p.getOperationFn(p.next())
 	if err != nil {
-		return 0, err
+		return storage.Result{}, err
 	}
 
 	if nextOp == nil {
-		return op.Exec([]float64{valLeft, valRight})
+		return op.Exec([]storage.Result{valLeft, valRight})
 	}
 
 	if nextOp.GetPrec() > op.GetPrec() {
 		valRight, err = p.execOperation(valRight, nextOp)
 		if err != nil {
-			return 0, err
+			return storage.Result{}, err
 		}
-		return op.Exec([]float64{valLeft, valRight})
+		return op.Exec([]storage.Result{valLeft, valRight})
 	}
 
-	valLeft, err = op.Exec([]float64{valLeft, valRight})
+	valLeft, err = op.Exec([]storage.Result{valLeft, valRight})
 	if err != nil {
-		return 0, err
+		return storage.Result{}, err
 	}
 	return p.execOperation(valLeft, nextOp)
 
@@ -103,24 +107,35 @@ func getVal(i scan.Item) (float64, error) {
 	return strconv.ParseFloat(i.Val, 64)
 }
 
-func (p *Parser) execStatement() (float64, error) {
+func getTyp(i scan.Item) (*datatype.DataType, error) {
+	if i.Typ == scan.ItemBareDataType {
+		return datatype.BareDataType, nil
+	} else if i.Typ == scan.ItemDataType {
+		return datatype.GetType(i.Val)
+	}
+
+	panic("unexpected behaviour of scan - expected ItemDataType not found")
+
+}
+
+func (p *Parser) execStatement() (storage.Result, error) {
 
 	v, err := p.getOperand(p.peek())
 
 	if err != nil {
-		return 0, err
+		return storage.Result{}, err
 	}
 
 	f, err := p.getOperationFn(p.next())
 	if err != nil {
-		return 0, err
+		return storage.Result{}, err
 	} else if f == nil {
 		return v, nil
 	}
 	return p.execOperation(v, f)
 }
 
-func (p *Parser) ExecStatement() (float64, error) {
+func (p *Parser) ExecStatement() (storage.Result, error) {
 
 	// case of assignment
 	if len(p.tokens) > 2 {

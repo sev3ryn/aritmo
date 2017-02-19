@@ -3,30 +3,31 @@ package parse
 import (
 	"testing"
 
+	"github.com/sev3ryn/aritmo/datatype"
 	"github.com/sev3ryn/aritmo/scan"
 	"github.com/sev3ryn/aritmo/storage"
 )
 
 type parseTest struct {
 	input  string
-	result float64
+	result storage.Result
 }
 
 var parseTests = []parseTest{
-	{"1+2+3+4", 10},
-	{"1+2*3+4", 11},
-	{"1+2*(3+4)", 15},
-	{"1+2*(3+4)-6", 9},
-	{"1+2*(3+4)/2-1", 7},
-	{"(1+2)*3", 9},
-	{"1+2*(3+4)-5*6", -15},
-	{"1+2*(3+4)-5*(6+7)", -50},
-	{"1+2*((3+4))", 15},
-	{"1+2*(3+4)-(5)", 10},
-	{"1+2*((3+4)*5+6)", 83},
-	{"1+(1+(3+4)*5+6)*2", 85},
-	{"1+*2", 0},
-	{"1/0", 0},
+	{"1+2+3+4", storage.Result{Val: 10, Typ: datatype.BareDataType}},
+	{"1+2*3+4", storage.Result{Val: 11, Typ: datatype.BareDataType}},
+	{"1+2*(3+4)", storage.Result{Val: 15, Typ: datatype.BareDataType}},
+	{"1+2*(3+4)-6", storage.Result{Val: 9, Typ: datatype.BareDataType}},
+	{"1+2*(3+4)/2-1", storage.Result{Val: 7, Typ: datatype.BareDataType}},
+	{"(1+2)*3", storage.Result{Val: 9, Typ: datatype.BareDataType}},
+	{"1+2*(3+4)-5*6", storage.Result{Val: -15, Typ: datatype.BareDataType}},
+	{"1+2*(3+4)-5*(6+7)", storage.Result{Val: -50, Typ: datatype.BareDataType}},
+	{"1+2*((3+4))", storage.Result{Val: 15, Typ: datatype.BareDataType}},
+	{"1+2*(3+4)-(5)", storage.Result{Val: 10, Typ: datatype.BareDataType}},
+	{"1+2*((3+4)*5+6)", storage.Result{Val: 83, Typ: datatype.BareDataType}},
+	{"1+(1+(3+4)*5+6)*2", storage.Result{Val: 85, Typ: datatype.BareDataType}},
+	{"1+*2", storage.Result{Val: 0}},
+	{"1/0", storage.Result{Val: 0}},
 }
 
 func TestParser(t *testing.T) {

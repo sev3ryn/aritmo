@@ -16,6 +16,8 @@ const (
 	ItemOperation
 	ItemLParen
 	ItemRParen
+	ItemDataType
+	ItemBareDataType
 	ItemError
 	ItemTypeConv
 )
@@ -98,9 +100,13 @@ func (s *Scanner) next() rune {
 	return s.peek()
 }
 
+func (s *Scanner) currentStr() string {
+	return string(s.input[s.start:s.col])
+}
+
 // emit - puts item to output channel and shifts start for next iteration
 func (s *Scanner) emit(t itemType) {
-	s.items <- Item{t, string(s.input[s.start:s.col]), s.start}
+	s.items <- Item{t, s.currentStr(), s.start}
 	s.start = s.col
 }
 
@@ -178,14 +184,16 @@ func lexOperand(s *Scanner) stateFn {
 
 	switch {
 	case unicode.IsDigit(r):
-		return lexNumber
+		lexNumber(s)
+		return lexDataType
 	// handling negative numbers
 	case r == '-':
 
 		if r = s.next(); isEOF(r) {
 			return s.emitEOF(true)
 		} else if unicode.IsDigit(r) {
-			return lexNumber
+			lexNumber(s)
+			return lexDataType
 		}
 
 		return s.unexpectedErr("char")
@@ -203,6 +211,29 @@ func lexOperand(s *Scanner) stateFn {
 
 }
 
+func lexDataType(s *Scanner) stateFn {
+	if isSpace(s.peek()) {
+		s.skipSpaces()
+	}
+
+	r := s.peek()
+	if isEOF(r) {
+		s.emit(ItemBareDataType)
+		return s.emitEOF(false)
+	}
+
+	if !unicode.IsLetter(r) {
+		s.emit(ItemBareDataType)
+		return lexOperator
+	}
+
+	s.iterate(unicode.IsLetter)
+
+	s.emit(ItemDataType)
+
+	return lexOperator
+}
+
 func lexOperator(s *Scanner) stateFn {
 
 	if isSpace(s.peek()) {
@@ -214,26 +245,17 @@ func lexOperator(s *Scanner) stateFn {
 		return s.emitEOF(false)
 	}
 
-	switch {
-	case r == '+':
+	switch r {
+	case '+', '-', '*', '/':
 		s.next()
 		s.emit(ItemOperation)
-	case r == '-':
-		s.next()
-		s.emit(ItemOperation)
-	case r == '*':
-		s.next()
-		s.emit(ItemOperation)
-	case r == '/':
-		s.next()
-		s.emit(ItemOperation)
-	case r == 't':
+	case 't':
 		if s.next() != 'o' {
 			s.unexpectedErr("char")
 		}
 		s.next()
 		s.emit(ItemTypeConv)
-	case r == ')':
+	case ')':
 		if s.openParenCnt == 0 {
 			return s.errorf("No matching opening parenteses for closing one at col %d", s.col)
 		}

@@ -74,7 +74,7 @@ func refresh(
 	var input string
 	for line := startLine; line < endLine+1; line++ {
 		input = eSession.GetLine(line)
-		rSession.Replace(getLineRange(line), calculate(input))
+		rSession.Replace(getLineRange(line), calculate(line, input))
 	}
 }
 
