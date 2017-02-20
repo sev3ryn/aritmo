@@ -229,6 +229,17 @@ func lexDataType(s *Scanner) stateFn {
 
 	s.iterate(unicode.IsLetter)
 
+	// Save current postion
+	currPos := s.col
+	// skip spaces without moving start position
+	s.iterate(func(r rune) bool { return r == ' ' || r == '\t' })
+
+	if unicode.IsLetter(s.peek()) {
+		s.iterate(unicode.IsLetter)
+	} else {
+		// revert to postion before space chars
+		s.col = currPos
+	}
 	s.emit(ItemDataType)
 
 	return lexOperator
