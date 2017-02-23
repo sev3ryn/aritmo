@@ -25,14 +25,14 @@ type DataType struct {
 
 var BareDataType = &DataType{Group: GroupBare, Factor: 1}
 
-func (typeFrom *DataType) GetConversionMultipl(typeTo *DataType) (float64, error) {
+func (typeFrom *DataType) GetConvFunc(typeTo *DataType) (func(float64) float64, error) {
 	if typeFrom.Group == GroupBare {
-		return 1, nil
+		return func(in float64) float64 { return in }, nil
 	} else if typeFrom.Group != typeTo.Group {
-		return 0, fmt.Errorf("GetConversionMultipl: incompatible types %s - %s", typeFrom.DisplayName, typeTo.DisplayName)
+		return nil, fmt.Errorf("GetConversionMultipl: incompatible types %s - %s", typeFrom.DisplayName, typeTo.DisplayName)
 	}
 
-	return typeTo.Factor / typeFrom.Factor, nil
+	return func(in float64) float64 { return in * typeTo.Factor / typeFrom.Factor }, nil
 }
 
 func GetType(name string) (*DataType, error) {
@@ -56,5 +56,6 @@ func initUnits(units []*DataType) {
 func init() {
 	initUnits(lengthTypes)
 	initUnits(weightTypes)
+	initUnits(volumeTypes)
 
 }

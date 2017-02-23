@@ -7,10 +7,10 @@ import (
 	"github.com/sev3ryn/aritmo/storage"
 )
 
-type OperationFn func(storage.Result, storage.Result) (storage.Result, error)
+type operationFn func(storage.Result, storage.Result) (storage.Result, error)
 
 type binaryOp struct {
-	f           OperationFn
+	f           operationFn
 	precendance int
 }
 
@@ -35,36 +35,31 @@ var operationMap = map[string]operation{
 }
 
 func Add(a, b storage.Result) (r storage.Result, err error) {
-	if a.Typ.Group == datatype.GroupBare {
-		return storage.Result{a.Val + b.Val, b.Typ}, nil
-	}
-	m, err := b.Typ.GetConversionMultipl(a.Typ)
-	return storage.Result{Val: a.Val + b.Val*m, Typ: a.Typ}, err
+	return calcResult(a, b, func(a, b float64) float64 { return a + b })
 }
 
 func Sub(a, b storage.Result) (storage.Result, error) {
-	if a.Typ.Group == datatype.GroupBare {
-		return storage.Result{a.Val - b.Val, b.Typ}, nil
-	}
-	m, err := b.Typ.GetConversionMultipl(a.Typ)
-	return storage.Result{Val: a.Val - b.Val*m, Typ: a.Typ}, err
+	return calcResult(a, b, func(a, b float64) float64 { return a - b })
 }
 
 func Mul(a, b storage.Result) (storage.Result, error) {
-	if a.Typ.Group == datatype.GroupBare {
-		return storage.Result{a.Val * b.Val, b.Typ}, nil
-	}
-	m, err := b.Typ.GetConversionMultipl(a.Typ)
-	return storage.Result{Val: a.Val * b.Val * m, Typ: a.Typ}, err
+	return calcResult(a, b, func(a, b float64) float64 { return a * b })
 }
 
 func Div(a, b storage.Result) (storage.Result, error) {
 	if b.Val == 0 {
 		return storage.Result{}, fmt.Errorf("Can't divide by zero")
 	}
+	return calcResult(a, b, func(a, b float64) float64 { return a / b })
+}
+
+func calcResult(a, b storage.Result, opFunc func(float64, float64) float64) (storage.Result, error) {
 	if a.Typ.Group == datatype.GroupBare {
-		return storage.Result{a.Val / b.Val, b.Typ}, nil
+		return storage.Result{Val: a.Val * b.Val, Typ: b.Typ}, nil
 	}
-	m, err := b.Typ.GetConversionMultipl(a.Typ)
-	return storage.Result{Val: a.Val / (b.Val * m), Typ: a.Typ}, err
+	f, err := b.Typ.GetConvFunc(a.Typ)
+	if err != nil {
+		return storage.Result{}, err
+	}
+	return storage.Result{Val: opFunc(a.Val, f(b.Val)), Typ: a.Typ}, err
 }
