@@ -10,8 +10,8 @@ const (
 	GroupLength
 	GroupWeight
 	GroupTemperature
-	GroupTime
 	GroupVolume
+	GroupTime
 	GroupCurrency
 	GroupDataSize
 )
@@ -45,10 +45,16 @@ func GetType(name string) (*DataType, error) {
 
 var typeMap = make(map[string]*DataType)
 
-func init() {
-	for _, t := range lengthTypes {
+func initUnits(units []*DataType) {
+	for _, t := range units {
 		for _, n := range t.Names {
 			typeMap[n] = t
 		}
 	}
+}
+
+func init() {
+	initUnits(lengthTypes)
+	initUnits(weightTypes)
+
 }

@@ -63,6 +63,12 @@ var lengthTypes = []*DataType{
 	},
 	&DataType{
 		Group:       GroupLength,
+		Names:       []string{"light year", "light years"},
+		DisplayName: "l.y.",
+		Factor:      1.057001218773e-16,
+	},
+	&DataType{
+		Group:       GroupLength,
 		Names:       []string{"meter", "metre", "meters", "metres", "m"},
 		DisplayName: "m",
 		Factor:      1,
@@ -96,6 +102,12 @@ var lengthTypes = []*DataType{
 		Names:       []string{"nanometer", "nanometre", "nanometers", "nanometres", "nm"},
 		DisplayName: "nm",
 		Factor:      1000000000,
+	},
+	&DataType{
+		Group:       GroupLength,
+		Names:       []string{"nautical mile", "n.m.", "nautical miles"},
+		DisplayName: "n.m.",
+		Factor:      0.000539957,
 	},
 	&DataType{
 		Group:       GroupLength,
