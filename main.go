@@ -50,7 +50,7 @@ func calculate(line int, input string) string {
 
 	output.Val = RoundFloat(output.Val, precision)
 
-	return fmt.Sprintf("%s %s", strconv.FormatFloat(output.Val, 'f', -1, 64), output.Typ.DisplayName)
+	return fmt.Sprintf("%s %s", strconv.FormatFloat(output.Val, 'f', -1, 64), output.Typ.GetBase().DisplayName)
 
 }
 

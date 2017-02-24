@@ -107,7 +107,7 @@ func getVal(i scan.Item) (float64, error) {
 	return strconv.ParseFloat(i.Val, 64)
 }
 
-func getTyp(i scan.Item) (*datatype.DataType, error) {
+func getTyp(i scan.Item) (datatype.DataType, error) {
 	if i.Typ == scan.ItemBareDataType {
 		return datatype.BareDataType, nil
 	} else if i.Typ == scan.ItemDataType {

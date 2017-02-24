@@ -8,7 +8,7 @@ import (
 
 type Result struct {
 	Val float64
-	Typ *datatype.DataType
+	Typ datatype.DataType
 }
 
 type Store interface {

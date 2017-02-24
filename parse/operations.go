@@ -54,7 +54,7 @@ func Div(a, b storage.Result) (storage.Result, error) {
 }
 
 func calcResult(a, b storage.Result, opFunc func(float64, float64) float64) (storage.Result, error) {
-	if a.Typ.Group == datatype.GroupBare {
+	if a.Typ.GetBase().Group == datatype.GroupBare {
 		return storage.Result{Val: a.Val * b.Val, Typ: b.Typ}, nil
 	}
 	f, err := b.Typ.GetConvFunc(a.Typ)
