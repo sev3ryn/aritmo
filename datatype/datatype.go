@@ -84,5 +84,5 @@ func init() {
 	initUnits(lengthTypes)
 	initUnits(weightTypes)
 	initUnits(volumeTypes)
-
+	initUnits(temperatureTypes)
 }
