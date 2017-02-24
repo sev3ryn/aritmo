@@ -10,8 +10,9 @@ import (
 )
 
 type Parser struct {
-	tokens []scan.Item
-	store  storage.Store
+	tokens  []scan.Item
+	store   storage.Store
+	typeMap datatype.TypeMap
 }
 
 func (p *Parser) peek() scan.Item {
@@ -41,7 +42,7 @@ func (p *Parser) getOperand(tok scan.Item) (r storage.Result, err error) {
 		if err != nil {
 			return
 		}
-		r.Typ, err = getTyp(p.next())
+		r.Typ, err = p.getTyp(p.next())
 
 		return r, err
 	}
@@ -107,11 +108,11 @@ func getVal(i scan.Item) (float64, error) {
 	return strconv.ParseFloat(i.Val, 64)
 }
 
-func getTyp(i scan.Item) (datatype.DataType, error) {
+func (p *Parser) getTyp(i scan.Item) (datatype.DataType, error) {
 	if i.Typ == scan.ItemBareDataType {
 		return datatype.BareDataType, nil
 	} else if i.Typ == scan.ItemDataType {
-		return datatype.GetType(i.Val)
+		return p.typeMap.GetType(i.Val)
 	}
 
 	panic("unexpected behaviour of scan - expected ItemDataType not found")
@@ -161,9 +162,9 @@ func (p *Parser) ExecStatement() (storage.Result, error) {
 }
 
 // New - costructor for Parser
-func New(s *scan.Scanner, st storage.Store) *Parser {
+func New(s *scan.Scanner, st storage.Store, tm datatype.TypeMap) *Parser {
 	//p.tokens = p.tokens[:0]
-	p := &Parser{tokens: []scan.Item{}, store: st}
+	p := &Parser{tokens: []scan.Item{}, store: st, typeMap: tm}
 	for {
 		tok := s.NextItem()
 		switch tok.Typ {

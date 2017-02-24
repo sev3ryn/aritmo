@@ -62,27 +62,30 @@ func (typeFrom *SimpleDataType) GetConvFunc(typeTo DataType) (ConvFunc, error) {
 
 var BareDataType = &SimpleDataType{b: &BaseDataType{Group: GroupBare}, Factor: 1}
 
-func GetType(name string) (DataType, error) {
+func (t TypeMap) GetType(name string) (DataType, error) {
 
-	if dt, ok := typeMap[name]; ok {
+	if dt, ok := t[name]; ok {
 		return dt, nil
 	}
 	return nil, fmt.Errorf("getTyp: unknown datatype %q", name)
 }
 
-var typeMap = make(map[string]DataType)
-
-func initUnits(units []DataType) {
-	for _, t := range units {
-		for _, n := range t.GetBase().GetNames() {
-			typeMap[n] = t
+func (t TypeMap) initUnits(units []DataType) {
+	for _, unit := range units {
+		for _, name := range unit.GetBase().GetNames() {
+			t[name] = unit
 		}
 	}
 }
 
-func init() {
-	initUnits(lengthTypes)
-	initUnits(weightTypes)
-	initUnits(volumeTypes)
-	initUnits(temperatureTypes)
+type TypeMap map[string]DataType
+
+func Init() TypeMap {
+	var typeMap = make(TypeMap)
+
+	typeMap.initUnits(lengthTypes)
+	typeMap.initUnits(weightTypes)
+	typeMap.initUnits(volumeTypes)
+	typeMap.initUnits(temperatureTypes)
+	return typeMap
 }

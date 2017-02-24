@@ -6,6 +6,7 @@ import (
 
 	"fmt"
 
+	"github.com/sev3ryn/aritmo/datatype"
 	"github.com/sev3ryn/aritmo/parse"
 	"github.com/sev3ryn/aritmo/scan"
 	"github.com/sev3ryn/aritmo/storage"
@@ -39,10 +40,11 @@ func RoundFloat(x float64, prec int) float64 {
 }
 
 var store = storage.RAMStore
+var typeMap = datatype.Init()
 
 func calculate(line int, input string) string {
 	store.CurrLine = line
-	p := parse.New(scan.New(input), store)
+	p := parse.New(scan.New(input), store, typeMap)
 	output, err := p.ExecStatement()
 	if err != nil {
 		return ""
