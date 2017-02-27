@@ -13,14 +13,14 @@ func getLine(line int) ace.Range {
 	return ace.NewRange(line, 0, line, int(^uint(0)>>1))
 }
 
-func getLineRange(line int) ace.Range {
+func getLineRange(start, end int) ace.Range {
 	o := js.Global.Get("Object").New()
 	o.Set("start", map[string]interface{}{
-		"row":    line,
+		"row":    start,
 		"column": 0,
 	})
 	o.Set("end", map[string]interface{}{
-		"row":    line,
+		"row":    end,
 		"column": int(^uint(0) >> 1),
 	})
 	return ace.Range{Object: o}
@@ -58,24 +58,46 @@ func setupResultPane(divId string) (*ace.Editor, *ace.EditSession) {
 	})
 	s := e.GetSession()
 	e.Set("$blockScrolling", 1)
-	// hack while keyboard handler not found yet
-	expandResultPane(&e, &s, 99)
 	return &e, &s
 }
 
 func refresh(
 	eSession, rSession *ace.EditSession,
-	startLine, endLine int,
+	selection *ace.Range,
 ) {
+
+	startLine, endLine := selection.StartRow(), selection.EndRow()
+
 	if startLine > endLine {
 		return
 	}
 
+	editLength := eSession.GetLength()
+	resutLength := rSession.GetLength()
+
 	var input string
-	for line := startLine; line < endLine+1; line++ {
-		input = eSession.GetLine(line)
-		rSession.Replace(getLineRange(line), calculate(line, input))
+	if editLength == resutLength {
+		for line := startLine; line <= endLine; line++ {
+			input = eSession.GetLine(line)
+			rSession.Replace(getLineRange(line, line), calculate(line, input))
+		}
+	} else if editLength > resutLength {
+
+		for i := 0; i <= editLength-resutLength; i++ {
+			if i != editLength-resutLength {
+				rSession.Insert(startLine+i, 20, "\n")
+			}
+
+			input = eSession.GetLine(startLine + i)
+			rSession.Replace(getLineRange(startLine+i, startLine+i), calculate(startLine+i, input))
+		}
+
+	} else if editLength < resutLength {
+		input = eSession.GetLine(startLine)
+		rSession.Remove(getLineRange(startLine, endLine))
+		rSession.Replace(getLineRange(startLine, startLine), calculate(startLine, input))
 	}
+
 }
 
 func init() {
@@ -88,13 +110,12 @@ func init() {
 	syncScroll(eSession, rSession)
 	syncScroll(rSession, eSession)
 
-	//e.Get("commands").Get("byName").Get("backspace").Set("exec", func() { fmt.Println("backspace") })
 	//e.Get("commands").Get("byName").Get("enter").Set("exec", func(){fmt.Println("enter")})
 
-	var line int
+	var selection ace.Range
 	e.OnChange(func(j *js.Object) {
-		line = e.GetSelectionRange().StartRow()
-		refresh(eSession, rSession, line, line)
+		selection = e.GetSelectionRange()
+		refresh(eSession, rSession, &selection)
 	})
 
 }
