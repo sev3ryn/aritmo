@@ -33,18 +33,6 @@ func (i Item) String() string {
 	return fmt.Sprintf("%s:%q", i.Typ, i.Val)
 }
 
-type currencyType int
-
-//go:generate stringer -type=currencyType
-const (
-	nilType currencyType = iota
-	usd
-	eur
-	pln
-	gbp
-	chf
-)
-
 const eof = -1
 
 type stateFn func(*Scanner) stateFn

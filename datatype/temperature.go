@@ -6,30 +6,34 @@ import (
 
 type tempType int
 
+// Temperature units - Celsius, Fahrenheit, Kelvin
 const (
 	Celsius tempType = iota
 	Fahrenheit
 	Kelvin
 )
 
+// TemperatureType - struct for implementing convertions of temperature
 type TemperatureType struct {
 	b             *BaseDataType
 	tempUnit      tempType
 	convTempFuncs map[tempType]ConvFunc
 }
 
+// GetBase - return basic info(names, displayName, unit group) of datatype unit
 func (t *TemperatureType) GetBase() *BaseDataType {
 	return t.b
 }
 
-func (typeFrom *TemperatureType) GetConvFunc(typeTo DataType) (ConvFunc, error) {
-	if typeFrom.b.Group == GroupBare {
+// GetConvFunc - convert function for switching from one temperature unit to antoher
+func (t *TemperatureType) GetConvFunc(typeTo DataType) (ConvFunc, error) {
+	if t.b.Group == GroupBare {
 		return func(in float64) float64 { return in }, nil
-	} else if typeFrom.b.Group != typeTo.GetBase().Group {
-		return nil, fmt.Errorf("GetConversionMultipl: incompatible types %s - %s", typeFrom, typeTo)
+	} else if t.b.Group != typeTo.GetBase().Group {
+		return nil, fmt.Errorf("GetConversionMultipl: incompatible types %#v - %#v", t, typeTo)
 	}
 
-	return typeFrom.convTempFuncs[typeTo.(*TemperatureType).tempUnit], nil
+	return t.convTempFuncs[typeTo.(*TemperatureType).tempUnit], nil
 }
 
 var temperatureTypes = []DataType{

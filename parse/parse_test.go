@@ -37,8 +37,8 @@ func TestParser(t *testing.T) {
 		t.Run(tst.input, func(t *testing.T) {
 			s := scan.New(tst.input)
 			p := New(s, storage.RAMStore, dt)
-			if res, _ := p.execStatement(); res != tst.result {
-				t.Errorf("%s=%f instead of %f", tst.input, res, tst.result)
+			if res, _ := p.execStatement(); res.Typ != tst.result.Typ || res.Val != tst.result.Val {
+				t.Errorf("%s=%#v instead of %#v", tst.input, res, tst.result)
 			}
 		})
 	}

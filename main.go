@@ -14,7 +14,7 @@ import (
 
 const precision = 2
 
-func RoundFloat(x float64, prec int) float64 {
+func roundFloat(x float64, prec int) float64 {
 	if math.IsNaN(x) || math.IsInf(x, 0) {
 		return x
 	}
@@ -51,7 +51,7 @@ func calculate(line int, input string) string {
 		return ""
 	}
 
-	output.Val = RoundFloat(output.Val, precision)
+	output.Val = roundFloat(output.Val, precision)
 
 	return fmt.Sprintf("%s %s", strconv.FormatFloat(output.Val, 'f', -1, 64), output.Typ.GetBase().DisplayName)
 

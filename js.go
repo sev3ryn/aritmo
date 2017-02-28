@@ -9,6 +9,7 @@ import (
 	"maunium.net/go/gopher-ace"
 )
 
+// for incremental refres - not used for now as has bugs
 func getLine(line int) ace.Range {
 
 	return ace.NewRange(line, 0, line, int(^uint(0)>>1))
@@ -27,6 +28,7 @@ func getLineRange(start, end int) ace.Range {
 	return ace.Range{Object: o}
 }
 
+// for incremental refres - not used for now as has bugs
 func expandResultPane(r *ace.Editor, rses *ace.EditSession, numLines int) {
 	for i := 0; i < numLines; i++ {
 		rses.Insert(0, 0, "\n")
@@ -62,6 +64,7 @@ func setupResultPane(divId string) (*ace.Editor, *ace.EditSession) {
 	return &e, &s
 }
 
+// for incremental refres - not used for now as has bugs
 func refresh(
 	eSession, rSession *ace.EditSession,
 	selection *ace.Range,

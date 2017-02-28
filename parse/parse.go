@@ -9,6 +9,8 @@ import (
 	"github.com/sev3ryn/aritmo/storage"
 )
 
+// Parser - statement parser that maintains execution order,  set and get variables from storage
+// convert units. Central pipe of application
 type Parser struct {
 	tokens  []scan.Item
 	store   storage.Store
@@ -136,6 +138,7 @@ func (p *Parser) execStatement() (storage.Result, error) {
 	return p.execOperation(v, f)
 }
 
+// ExecStatement - execute parser input. Call itself recursively if needed to maintain operation precendance
 func (p *Parser) ExecStatement() (storage.Result, error) {
 
 	// case of assignment

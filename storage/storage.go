@@ -6,38 +6,41 @@ import (
 	"github.com/sev3ryn/aritmo/datatype"
 )
 
+// Result - the smallest unit of parse operations. Consists of value and datatype
 type Result struct {
 	Val float64
 	Typ datatype.DataType
 }
 
+// Store - interface for variable storage
 type Store interface {
 	Save(key string, val Result, err error) error
 	Get(key string) (val Result, err error)
 	Remove(key string) error
 }
 
+// StoreItem - atomic type of storage
 type StoreItem struct {
 	line int
 	val  Result
 	ok   bool
 }
 
+// StoreItemMap - implementation of Store in RAM
 type StoreItemMap struct {
 	m        map[string][]StoreItem
 	CurrLine int
 }
 
+// RAMStore - instance of StoreItemMap
 var RAMStore = StoreItemMap{m: make(map[string][]StoreItem)}
 
+// Insert - add variable to list of variable declarations according to its postion in editor
 func Insert(slice []StoreItem, index int, value StoreItem) []StoreItem {
 	// Grow the slice by one element.
-	fmt.Println("e")
 	slice = append(slice, slice[0])
-	fmt.Println("expanded")
 	// Use copy to move the upper part of the slice out of the way and open a hole.
 	copy(slice[index+1:], slice[index:])
-	fmt.Println("copied")
 	// Store the new value.
 	slice[index] = value
 	// Return the result.
@@ -66,17 +69,17 @@ func (s StoreItemMap) save(key string, item StoreItem) {
 
 }
 
+// Save - store variable
 func (s StoreItemMap) Save(key string, val Result, err error) error {
 	if err != nil {
 		s.save(key, StoreItem{line: s.CurrLine, ok: false})
 		return nil
 	}
-	fmt.Printf("Prev %+v\n", s.m)
 	s.save(key, StoreItem{line: s.CurrLine, val: val, ok: true})
-	fmt.Printf("Next %+v\n", s.m)
 	return nil
 }
 
+// Get - get nearest(if multiple declaration) variable by key
 func (s StoreItemMap) Get(k string) (Result, error) {
 	v, ok := s.m[k]
 
@@ -96,6 +99,7 @@ func (s StoreItemMap) Get(k string) (Result, error) {
 	return Result{}, fmt.Errorf("storage.Get: Impossible case")
 }
 
+// Remove - remove key from storage. Not used now
 func (s StoreItemMap) Remove(k string) error {
 	//s[k] = StoreItem{}
 	return nil
