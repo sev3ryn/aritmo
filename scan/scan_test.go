@@ -357,3 +357,60 @@ func TestLex(t *testing.T) {
 
 	}
 }
+
+func TestLexOperand(t *testing.T) {
+
+	tests := []struct {
+		input string
+		want  Item
+	}{
+		{input: "", want: Item{Typ: ItemError, Val: "Unexpected EOF - at col 0"}},
+		{input: "   ", want: Item{Typ: ItemError, Val: "Unexpected EOF - at col 3"}},
+		{input: "3000", want: Item{Typ: ItemNumber, Val: "3000"}},
+		{input: "  -1003", want: Item{Typ: ItemNumber, Val: "-1003"}},
+		{input: "  -", want: Item{Typ: ItemError, Val: "Unexpected EOF - at col 3"}},
+		{input: "  -a", want: Item{Typ: ItemError, Val: "Unexpected char - at col 3"}},
+		{input: "(", want: Item{Typ: ItemLParen, Val: "("}}, // need to check increment working
+		{input: "*", want: Item{Typ: ItemError, Val: "Unexpected char - at col 0"}},
+		//{input: "  a", want: Item{Typ: ItemVariable, Val: "a"}}, // need to check no output
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			s := &Scanner{input: []rune(tt.input), items: make(chan Item)}
+			go func() { _ = lexOperand(s) }()
+
+			if itm := <-s.items; itm.Typ != tt.want.Typ || itm.Val != tt.want.Val {
+				t.Errorf("lexOperand() = %v, want %v", itm, tt.want)
+			}
+		})
+	}
+}
+
+func TestLexOperator(t *testing.T) {
+	tests := []struct {
+		input string
+		want  Item
+	}{
+		{input: "", want: Item{Typ: ItemEOF, Val: ""}},
+		{input: "   ", want: Item{Typ: ItemEOF, Val: ""}},
+		{input: "+", want: Item{Typ: ItemOperation, Val: "+"}},
+		{input: "  -", want: Item{Typ: ItemOperation, Val: "-"}},
+		{input: "*", want: Item{Typ: ItemOperation, Val: "*"}},
+		{input: "/", want: Item{Typ: ItemOperation, Val: "/"}},
+		{input: "to ", want: Item{Typ: ItemOperation, Val: "to"}},
+		{input: "tp", want: Item{Typ: ItemError, Val: "Unexpected char - at col 1"}},
+		{input: "too", want: Item{Typ: ItemError, Val: "Unexpected char - at col 2"}},
+		{input: ")", want: Item{Typ: ItemError, Val: "No matching opening parenteses for closing one at col 0"}}, // need to check decrement working
+		{input: "a", want: Item{Typ: ItemError, Val: "Unexpected char - at col 0"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			s := &Scanner{input: []rune(tt.input), items: make(chan Item)}
+			go func() { _ = lexOperator(s) }()
+
+			if itm := <-s.items; itm.Typ != tt.want.Typ || itm.Val != tt.want.Val {
+				t.Errorf("lexOperator() = %v, want %v", itm, tt.want)
+			}
+		})
+	}
+}

@@ -57,8 +57,6 @@ func (s *Scanner) NextItem() Item {
 func New(input string) *Scanner {
 	s := &Scanner{
 		input: []rune(input),
-		start: 0,
-		col:   0,
 		items: make(chan Item),
 	}
 	go s.run()
@@ -234,7 +232,6 @@ func lexDataType(s *Scanner) stateFn {
 		s.col = currPos
 	}
 
-	fmt.Printf("%q\n", string(s.input[currPos:s.col]))
 	if strings.TrimSpace(string(s.input[currPos:s.col])) == "to" {
 		// revert to postion before space chars
 		s.col = currPos
@@ -264,7 +261,9 @@ func lexOperator(s *Scanner) stateFn {
 		if s.next() != 'o' {
 			s.unexpectedErr("char")
 		}
-		s.next()
+		if s.next() != ' ' {
+			s.unexpectedErr("char")
+		}
 		s.emit(ItemOperation)
 		s.emitCustom(ItemNumber, "0")
 		return lexDataType
