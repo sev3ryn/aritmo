@@ -2,6 +2,7 @@ package scan
 
 import (
 	"fmt"
+	"strings"
 	"unicode"
 )
 
@@ -19,7 +20,6 @@ const (
 	ItemDataType
 	ItemBareDataType
 	ItemError
-	ItemTypeConv
 )
 
 // Item atomic piece of scanner output. May be number, operator or variable
@@ -108,6 +108,11 @@ func (s *Scanner) currentStr() string {
 func (s *Scanner) emit(t itemType) {
 	s.items <- Item{t, s.currentStr(), s.start}
 	s.start = s.col
+}
+
+// emitCustom - manual emit of specified type and value
+func (s *Scanner) emitCustom(t itemType, val string) {
+	s.items <- Item{t, val, s.start}
 }
 
 // errorf - emits itemError
@@ -240,6 +245,13 @@ func lexDataType(s *Scanner) stateFn {
 		// revert to postion before space chars
 		s.col = currPos
 	}
+
+	fmt.Printf("%q\n", string(s.input[currPos:s.col]))
+	if strings.TrimSpace(string(s.input[currPos:s.col])) == "to" {
+		// revert to postion before space chars
+		s.col = currPos
+	}
+
 	s.emit(ItemDataType)
 
 	return lexOperator
@@ -265,7 +277,9 @@ func lexOperator(s *Scanner) stateFn {
 			s.unexpectedErr("char")
 		}
 		s.next()
-		s.emit(ItemTypeConv)
+		s.emit(ItemOperation)
+		s.emitCustom(ItemNumber, "0")
+		return lexDataType
 	case ')':
 		if s.openParenCnt == 0 {
 			return s.errorf("No matching opening parenteses for closing one at col %d", s.col)
