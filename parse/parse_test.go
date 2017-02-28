@@ -32,10 +32,11 @@ var parseTests = []parseTest{
 
 func TestParser(t *testing.T) {
 
+	dt := datatype.Init()
 	for _, tst := range parseTests {
 		t.Run(tst.input, func(t *testing.T) {
 			s := scan.New(tst.input)
-			p := New(s, storage.RAMStore)
+			p := New(s, storage.RAMStore, dt)
 			if res, _ := p.execStatement(); res != tst.result {
 				t.Errorf("%s=%f instead of %f", tst.input, res, tst.result)
 			}
