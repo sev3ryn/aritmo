@@ -47,6 +47,7 @@ func calculate(line int, input string) string {
 	p := parse.New(scan.New(input), store, typeMap)
 	output, err := p.ExecStatement()
 	if err != nil {
+		fmt.Println(err)
 		return ""
 	}
 

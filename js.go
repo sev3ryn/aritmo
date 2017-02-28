@@ -4,6 +4,7 @@ package main
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/sev3ryn/aritmo/storage"
 
 	"maunium.net/go/gopher-ace"
 )
@@ -100,6 +101,16 @@ func refresh(
 
 }
 
+func recompute(eSession, rSession *ace.EditSession) {
+	rSession.Remove(getLineRange(0, rSession.GetLength()-1))
+
+	store = storage.RAMStore
+	for i := 0; i < eSession.GetLength(); i++ {
+		input := eSession.GetLine(i)
+		rSession.Insert(i, 20, calculate(i, input)+"\n")
+	}
+}
+
 func init() {
 
 	e, eSession := setupEditor("editor")
@@ -112,10 +123,14 @@ func init() {
 
 	//e.Get("commands").Get("byName").Get("enter").Set("exec", func(){fmt.Println("enter")})
 
-	var selection ace.Range
+	//var selection ace.Range
 	e.OnChange(func(j *js.Object) {
-		selection = e.GetSelectionRange()
-		refresh(eSession, rSession, &selection)
+
+		// temporary - recalculate all window. TODO - do diff updates as below
+		recompute(eSession, rSession)
+
+		//selection = e.GetSelectionRange()
+		//refresh(eSession, rSession, &selection)
 	})
 
 }
