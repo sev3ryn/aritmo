@@ -2,6 +2,8 @@ package scan
 
 import "testing"
 
+import "time"
+
 type lexTest struct {
 	input string
 	items []Item
@@ -370,7 +372,6 @@ func TestLexOperand(t *testing.T) {
 		{input: "  -1003", want: Item{Typ: ItemNumber, Val: "-1003"}},
 		{input: "  -", want: Item{Typ: ItemError, Val: "Unexpected EOF - at col 3"}},
 		{input: "  -a", want: Item{Typ: ItemError, Val: "Unexpected char - at col 3"}},
-		{input: "(", want: Item{Typ: ItemLParen, Val: "("}}, // need to check increment working
 		{input: "*", want: Item{Typ: ItemError, Val: "Unexpected char - at col 0"}},
 		//{input: "  a", want: Item{Typ: ItemVariable, Val: "a"}}, // need to check no output
 	}
@@ -381,6 +382,50 @@ func TestLexOperand(t *testing.T) {
 
 			if itm := <-s.items; itm.Typ != tt.want.Typ || itm.Val != tt.want.Val {
 				t.Errorf("lexOperand() = %v, want %v", itm, tt.want)
+			}
+		})
+	}
+
+	// extracase 1
+	input := "("
+	want := Item{Typ: ItemLParen, Val: "("}
+	wantopenParenCnt := 1
+	t.Run(input, func(t *testing.T) {
+		s := &Scanner{input: []rune(input), items: make(chan Item)}
+		go func() { _ = lexOperand(s) }()
+
+		if itm := <-s.items; itm.Typ != want.Typ || itm.Val != want.Val || s.openParenCnt != wantopenParenCnt {
+			t.Errorf("lexOperand() = %v, want %v; openParenCnt = %d, want %d ", itm, want, s.openParenCnt, wantopenParenCnt)
+		}
+	})
+
+	// extracase 2
+	for r := 'a'; r <= 'z'; r++ {
+		input := string(r)
+		t.Run(input, func(t *testing.T) {
+			s := &Scanner{input: []rune(input), items: make(chan Item)}
+			go func() { _ = lexOperand(s) }()
+			time.Sleep(100 * time.Microsecond)
+			select {
+			case itm := <-s.items:
+				t.Errorf("Expected nil - received %v", itm)
+			default:
+				// correct case
+			}
+		})
+	}
+	// extracase 3
+	for r := 'A'; r <= 'Z'; r++ {
+		input := string(r)
+		t.Run(input, func(t *testing.T) {
+			s := &Scanner{input: []rune(input), items: make(chan Item)}
+			go func() { _ = lexOperand(s) }()
+			time.Sleep(100 * time.Microsecond)
+			select {
+			case itm := <-s.items:
+				t.Errorf("Expected nil - received %v", itm)
+			default:
+				// correct case
 			}
 		})
 	}
@@ -400,7 +445,7 @@ func TestLexOperator(t *testing.T) {
 		{input: "to ", want: Item{Typ: ItemOperation, Val: "to"}},
 		{input: "tp", want: Item{Typ: ItemError, Val: "Unexpected char - at col 1"}},
 		{input: "too", want: Item{Typ: ItemError, Val: "Unexpected char - at col 2"}},
-		{input: ")", want: Item{Typ: ItemError, Val: "No matching opening parenteses for closing one at col 0"}}, // need to check decrement working
+		{input: ")", want: Item{Typ: ItemError, Val: "No matching opening parenteses for closing one at col 0"}},
 		{input: "a", want: Item{Typ: ItemError, Val: "Unexpected char - at col 0"}},
 	}
 	for _, tt := range tests {
@@ -413,4 +458,18 @@ func TestLexOperator(t *testing.T) {
 			}
 		})
 	}
+
+	// extracase
+	want := Item{Typ: ItemRParen, Val: ")"}
+	input := ")"
+	openParenCnt := 1
+
+	t.Run(") decremtent", func(t *testing.T) {
+		s := &Scanner{input: []rune(input), items: make(chan Item), openParenCnt: openParenCnt}
+		go func() { _ = lexOperator(s) }()
+
+		if itm := <-s.items; itm.Typ != want.Typ || itm.Val != want.Val {
+			t.Errorf("lexOperator() = %v, want %v", itm, want)
+		}
+	})
 }
