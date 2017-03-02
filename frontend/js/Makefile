@@ -1,5 +1,6 @@
 run:
-	go test ./... && \
+	@go test ./... && \
 	go test ../core/... && \
+	$$GOPATH/bin/gopherjs build -m -o aritmo.js && \
 	open index.html && \
-	gopherjs build -wm -o arithmo.js
+	$$GOPATH/bin/gopherjs build -wm -o aritmo.js
