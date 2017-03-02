@@ -15,3 +15,7 @@ js: dummy
 
 backend:
 	$(MAKE) -C backend $1
+
+clean:
+	git clean -fd
+	go clean
