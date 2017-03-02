@@ -3,9 +3,9 @@ package parse
 import (
 	"testing"
 
-	"github.com/sev3ryn/aritmo/datatype"
-	"github.com/sev3ryn/aritmo/scan"
-	"github.com/sev3ryn/aritmo/storage"
+	"github.com/sev3ryn/aritmo/frontend/core/datatype"
+	"github.com/sev3ryn/aritmo/frontend/core/scan"
+	"github.com/sev3ryn/aritmo/frontend/core/storage"
 )
 
 type parseTest struct {

@@ -6,10 +6,10 @@ import (
 
 	"fmt"
 
-	"github.com/sev3ryn/aritmo/datatype"
-	"github.com/sev3ryn/aritmo/parse"
-	"github.com/sev3ryn/aritmo/scan"
-	"github.com/sev3ryn/aritmo/storage"
+	"github.com/sev3ryn/aritmo/frontend/core/datatype"
+	"github.com/sev3ryn/aritmo/frontend/core/parse"
+	"github.com/sev3ryn/aritmo/frontend/core/scan"
+	"github.com/sev3ryn/aritmo/frontend/core/storage"
 )
 
 const precision = 2

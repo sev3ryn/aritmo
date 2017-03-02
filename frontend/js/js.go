@@ -4,7 +4,7 @@ package main
 
 import (
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/sev3ryn/aritmo/storage"
+	"github.com/sev3ryn/aritmo/frontend/core/storage"
 
 	"maunium.net/go/gopher-ace"
 )

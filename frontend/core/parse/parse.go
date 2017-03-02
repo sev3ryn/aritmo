@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/sev3ryn/aritmo/datatype"
-	"github.com/sev3ryn/aritmo/scan"
-	"github.com/sev3ryn/aritmo/storage"
+	"github.com/sev3ryn/aritmo/frontend/core/datatype"
+	"github.com/sev3ryn/aritmo/frontend/core/scan"
+	"github.com/sev3ryn/aritmo/frontend/core/storage"
 )
 
 // Parser - statement parser that maintains execution order,  set and get variables from storage

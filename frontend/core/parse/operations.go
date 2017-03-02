@@ -5,8 +5,8 @@ import (
 
 	"math"
 
-	"github.com/sev3ryn/aritmo/datatype"
-	"github.com/sev3ryn/aritmo/storage"
+	"github.com/sev3ryn/aritmo/frontend/core/datatype"
+	"github.com/sev3ryn/aritmo/frontend/core/storage"
 )
 
 type binaryFn func(storage.Result, storage.Result) (storage.Result, error)

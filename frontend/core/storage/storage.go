@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/sev3ryn/aritmo/datatype"
+	"github.com/sev3ryn/aritmo/frontend/core/datatype"
 )
 
 // Result - the smallest unit of parse operations. Consists of value and datatype
