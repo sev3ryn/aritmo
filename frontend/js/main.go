@@ -40,7 +40,8 @@ func roundFloat(x float64, prec int) float64 {
 }
 
 var store = storage.RAMStore
-var typeMap = datatype.Init()
+var currUpdCh = make(chan []byte)
+var typeMap = datatype.Init(currUpdCh)
 
 func calculate(line int, input string) string {
 	store.CurrLine = line

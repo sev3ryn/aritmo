@@ -89,12 +89,15 @@ func (t TypeMap) initUnits(units []DataType) {
 type TypeMap map[string]DataType
 
 // Init - all avaliable units initialization - adding to TypeMap
-func Init() TypeMap {
+func Init(currUpdateCh <-chan []byte) TypeMap {
 	var typeMap = make(TypeMap)
 
 	typeMap.initUnits(lengthTypes)
 	typeMap.initUnits(weightTypes)
 	typeMap.initUnits(volumeTypes)
 	typeMap.initUnits(temperatureTypes)
+
+	typeMap.initUnits(GetCurrUnits(currUpdateCh))
+
 	return typeMap
 }

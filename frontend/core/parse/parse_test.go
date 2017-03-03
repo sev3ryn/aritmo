@@ -31,8 +31,8 @@ var parseTests = []parseTest{
 }
 
 func TestParser(t *testing.T) {
-
-	dt := datatype.Init()
+	var currUpdCh = make(chan []byte)
+	dt := datatype.Init(currUpdCh)
 	for _, tst := range parseTests {
 		t.Run(tst.input, func(t *testing.T) {
 			s := scan.New(tst.input)
